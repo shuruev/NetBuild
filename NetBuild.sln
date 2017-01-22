@@ -23,6 +23,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Queue", "Queue", "{3A694D11
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetBuild.Queue.Debug", "NetBuild.Queue.Debug\NetBuild.Queue.Debug.csproj", "{2C8C9006-D8F7-4B78-AEB8-4DF90823B322}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TfsPlugin.NetBuildQueue", "TfsPlugin.NetBuildQueue\TfsPlugin.NetBuildQueue.csproj", "{7AB9E645-10B4-4EB9-BDE2-C8D58A7DD343}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{2C8C9006-D8F7-4B78-AEB8-4DF90823B322}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C8C9006-D8F7-4B78-AEB8-4DF90823B322}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C8C9006-D8F7-4B78-AEB8-4DF90823B322}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AB9E645-10B4-4EB9-BDE2-C8D58A7DD343}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AB9E645-10B4-4EB9-BDE2-C8D58A7DD343}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AB9E645-10B4-4EB9-BDE2-C8D58A7DD343}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AB9E645-10B4-4EB9-BDE2-C8D58A7DD343}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -69,5 +75,6 @@ Global
 		{DD4C2D39-B018-400B-A7B4-D7B81E1BF26F} = {F987B13B-AD48-4473-B751-D96EABBE4951}
 		{E22ADA79-9C3E-423D-9A6C-EEF1D85D96A3} = {F987B13B-AD48-4473-B751-D96EABBE4951}
 		{2C8C9006-D8F7-4B78-AEB8-4DF90823B322} = {3A694D11-2EF5-41F0-9EF1-41B6C2BA6997}
+		{7AB9E645-10B4-4EB9-BDE2-C8D58A7DD343} = {200EB6EF-869C-4B60-9D01-22E4AEA5EE19}
 	EndGlobalSection
 EndGlobal
