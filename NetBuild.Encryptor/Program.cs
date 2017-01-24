@@ -1,5 +1,5 @@
 ﻿using System;
-using Lean.Configuration;
+using Atom.Toolbox;
 using NetBuild.Common;
 
 namespace NetBuild.Encryptor
