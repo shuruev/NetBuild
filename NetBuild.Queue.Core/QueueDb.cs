@@ -16,6 +16,11 @@ namespace NetBuild.Queue.Core
 		protected readonly int m_commandTimeoutInSeconds;
 
 		/// <summary>
+		/// Simple logging instance to access diagnostics messages.
+		/// </summary>
+		public ILog Log { get; set; }
+
+		/// <summary>
 		/// Initializes a new instance.
 		/// </summary>
 		public QueueDb(string connectionString, TimeSpan commandTimeout)
@@ -35,10 +40,8 @@ namespace NetBuild.Queue.Core
 		/// </summary>
 		public void SubmitItem(string itemCode)
 		{
-			using (var conn = new SqlConnection(m_connectionString))
+			using (var conn = Open())
 			{
-				conn.Open();
-
 				conn.Execute(
 					"Queue.SubmitItem",
 					new { itemCode },
@@ -53,10 +56,8 @@ namespace NetBuild.Queue.Core
 		/// </summary>
 		public void SetTriggers(string itemCode, string triggerType, IEnumerable<string> triggerValues)
 		{
-			using (var conn = new SqlConnection(m_connectionString))
+			using (var conn = Open())
 			{
-				conn.Open();
-
 				var table = new DataTable();
 				table.Columns.Add("Value", typeof(string));
 
@@ -75,14 +76,28 @@ namespace NetBuild.Queue.Core
 		}
 
 		/// <summary>
+		/// Processes any external signal, which potentially can trigger new builds.
+		/// </summary>
+		public void ProcessSignal(string signalType, string signalValue)
+		{
+			using (var conn = Open())
+			{
+				conn.Execute(
+					"Queue.ProcessSignal",
+					new { signalType, signalValue },
+					null,
+					m_commandTimeoutInSeconds,
+					CommandType.StoredProcedure);
+			}
+		}
+
+		/// <summary>
 		/// Checks whether specified item should be built, and returns all corresponding modifications related to this build.
 		/// </summary>
 		public List<BuildDto> ShouldBuild(string itemCode)
 		{
-			using (var conn = new SqlConnection(m_connectionString))
+			using (var conn = Open())
 			{
-				conn.Open();
-
 				return conn.Query<BuildDto>(
 					"Queue.ShouldBuild",
 					new { itemCode },
@@ -92,6 +107,28 @@ namespace NetBuild.Queue.Core
 					CommandType.StoredProcedure)
 					.ToList();
 			}
+		}
+
+		/// <summary>
+		/// Creates and opens new SQL connection, attaching logging instance if needed.
+		/// </summary>
+		private SqlConnection Open()
+		{
+			var conn = new SqlConnection(m_connectionString);
+			conn.Open();
+
+			if (Log != null)
+				conn.InfoMessage += InfoMessage;
+
+			return conn;
+		}
+
+		/// <summary>
+		/// Writes diagnostics message from SQL server.
+		/// </summary>
+		private void InfoMessage(object sender, SqlInfoMessageEventArgs e)
+		{
+			Log.Log(e.Message);
 		}
 	}
 }
