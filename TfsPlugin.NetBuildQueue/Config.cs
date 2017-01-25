@@ -51,12 +51,12 @@ namespace TfsPlugin.NetBuildQueue
 
 			Log.Debug($"Loading configuration from: {assemblyPath}");
 
-			var thumbprint = reader.Get<string>("Security.Thumbprint");
-			var secure = new LocalEncryptor(thumbprint);
-
 			var dbConnection = reader.Get<string>("NetBuild.DbConnection");
 			if (dbConnection.Contains("{password}"))
 			{
+				var thumbprint = reader.Get<string>("Security.Thumbprint");
+				var secure = new LocalEncryptor(thumbprint);
+
 				var dbPassword = secure.DecryptUtf8(reader.Get<string>("NetBuild.DbPassword"));
 				dbConnection = dbConnection.Replace("{password}", dbPassword);
 			}

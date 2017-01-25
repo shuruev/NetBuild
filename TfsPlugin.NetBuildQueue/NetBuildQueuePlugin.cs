@@ -127,7 +127,10 @@ namespace TfsPlugin.NetBuildQueue
 			var log = new StringBuilder();
 
 			var db = new QueueDb(Config.DbConnection, Config.DbTimeout);
-			db.Log = new StringLog(log);
+			if (Config.DebugMode)
+			{
+				db.Log = new StringLog(log);
+			}
 
 			var engine = new QueueEngine(db);
 
