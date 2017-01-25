@@ -54,6 +54,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NetBuild.Common\NetBuild.Common.csproj">
+      <Project>{dd4c2d39-b018-400b-a7b4-d7b81e1bf26f}</Project>
+      <Name>NetBuild.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NetBuild.Queue.Core\NetBuild.Queue.Core.csproj">
       <Project>{7dcaee59-c47f-420b-85e0-0f798157f906}</Project>
       <Name>NetBuild.Queue.Core</Name>
