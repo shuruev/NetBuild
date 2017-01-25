@@ -32,7 +32,7 @@ namespace TfsPlugin.NetBuildQueue
 		/// </summary>
 		public static void Info(string message)
 		{
-			TeamFoundationApplicationCore.Log($"{Name}: {message}", c_eventId, EventLogEntryType.Information);
+			TeamFoundationApplicationCore.Log(message, c_eventId, EventLogEntryType.Information);
 		}
 
 		/// <summary>
@@ -40,7 +40,7 @@ namespace TfsPlugin.NetBuildQueue
 		/// </summary>
 		public static void Error(Exception error)
 		{
-			TeamFoundationApplicationCore.LogException($"An error occured in {Name}:", error);
+			TeamFoundationApplicationCore.LogException($"An error occured in {Name}.", error);
 		}
 	}
 }

@@ -49,7 +49,7 @@ namespace TfsPlugin.NetBuildQueue
 
 			DebugMode = reader.Get<bool>("Debug.Enabled");
 
-			Log.Debug($"Loading configuration from {assemblyPath}...");
+			Log.Debug($"Loading configuration from: {assemblyPath}");
 
 			var thumbprint = reader.Get<string>("Security.Thumbprint");
 			var secure = new LocalEncryptor(thumbprint);

@@ -23,7 +23,7 @@ namespace TfsPlugin.NetBuildQueue
 		public NetBuildQueuePlugin()
 		{
 			Log.Name = Name;
-			Log.Info("Plugin loaded.");
+			Log.Info($"{Name} loaded.");
 		}
 
 		public EventNotificationStatus ProcessEvent(
@@ -42,7 +42,7 @@ namespace TfsPlugin.NetBuildQueue
 			{
 				if (Config.Load(requestContext.ServiceHost.PlugInDirectory))
 				{
-					Log.Info("Plugin configured.");
+					Log.Info($"{Name} configured.");
 					Log.Debug("Debug mode is enabled.");
 				}
 
@@ -87,7 +87,7 @@ namespace TfsPlugin.NetBuildQueue
 				var path = change.Item.ServerItem;
 				var type = change.ChangeType.ToString().ToLowerInvariant();
 
-				sb.AppendLine($"{path} ({type})");
+				sb.AppendLine($"{path} [{type}]");
 
 				var signal = new SourceChangedSignal
 				{
@@ -137,9 +137,9 @@ namespace TfsPlugin.NetBuildQueue
 
 			Log.Debug(
 				$@"Signal processed in {sw.ElapsedMilliseconds} ms.
----
-{JsonConvert.SerializeObject(signal)}
----
+
+{JsonConvert.SerializeObject(signal, Formatting.Indented)}
+
 {log}");
 		}
 	}

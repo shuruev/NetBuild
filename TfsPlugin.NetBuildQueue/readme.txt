@@ -5,6 +5,7 @@ C:\Program Files\Microsoft Team Foundation Server 12.0\Application Tier\Web Serv
 2. Copy the following files:
 ----------------------------
 - Atom.Module.Configuration.dll
+- Dapper.dll
 - NetBuild.Common.dll
 - NetBuild.Queue.Core.dll
 - Newtonsoft.Json.dll
