@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
 namespace NetBuild.Common
@@ -37,10 +38,7 @@ namespace NetBuild.Common
 
 				found = found.Find(X509FindType.FindByThumbprint, thumbprint, validBySignature);
 
-				if (found.Count == 0)
-					return null;
-
-				return found[0];
+				return found.Cast<X509Certificate2>().FirstOrDefault();
 			}
 			finally
 			{
