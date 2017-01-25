@@ -36,8 +36,9 @@
     <SlowCheetahTargets Condition=" '$(SlowCheetah_EnableImportFromNuGet)'=='true' and Exists('$(SlowCheetah_NuGetImportPath)') ">$(SlowCheetah_NuGetImportPath)</SlowCheetahTargets>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Atom.Module.Configuration">
-      <HintPath>..\..\Atom.Toolbox\Atom.Module.Configuration\bin\Debug\Atom.Module.Configuration.dll</HintPath>
+    <Reference Include="Atom.Module.Configuration, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Atom.Module.Configuration.1.0.4\lib\net45\Atom.Module.Configuration.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.TeamFoundation.Client">
       <HintPath>..\references\Microsoft.TeamFoundation.Client.dll</HintPath>
@@ -78,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="Log.cs" />
     <Compile Include="NetBuildQueuePlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -100,6 +102,10 @@
     <ProjectReference Include="..\NetBuild.Common\NetBuild.Common.csproj">
       <Project>{dd4c2d39-b018-400b-a7b4-d7b81e1bf26f}</Project>
       <Name>NetBuild.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetBuild.Queue.Core\NetBuild.Queue.Core.csproj">
+      <Project>{7dcaee59-c47f-420b-85e0-0f798157f906}</Project>
+      <Name>NetBuild.Queue.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

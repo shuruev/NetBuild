@@ -1,27 +1,29 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.Common;
 using Microsoft.TeamFoundation.Framework.Server;
 using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.TeamFoundation.VersionControl.Server;
+using NetBuild.Queue.Core;
+using Newtonsoft.Json;
+using Changeset = Microsoft.TeamFoundation.VersionControl.Client.Changeset;
 
 namespace TfsPlugin.NetBuildQueue
 {
 	public class NetBuildQueuePlugin : ISubscriber
 	{
-		private const int c_eventId = 2505;
-
 		public string Name => "TfsPlugin.NetBuildQueue";
 		public SubscriberPriority Priority => SubscriberPriority.Normal;
 		public Type[] SubscribedTypes() => new[] { typeof(CheckinNotification) };
 
 		public NetBuildQueuePlugin()
 		{
-			TeamFoundationApplicationCore.Log($"{Name} loaded.", c_eventId, EventLogEntryType.Information);
+			Log.Name = Name;
+			Log.Info("Plugin loaded.");
 		}
 
 		public EventNotificationStatus ProcessEvent(
@@ -38,12 +40,10 @@ namespace TfsPlugin.NetBuildQueue
 
 			try
 			{
-				var assemblyName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
-				var assemblyPath = Path.Combine(requestContext.ServiceHost.PlugInDirectory, assemblyName);
-
-				if (Config.Load(assemblyPath))
+				if (Config.Load(requestContext.ServiceHost.PlugInDirectory))
 				{
-					TeamFoundationApplicationCore.Log($"{Name} configured.", c_eventId, EventLogEntryType.Information);
+					Log.Info("Plugin configured.");
+					Log.Debug("Debug mode is enabled.");
 				}
 
 				if (notificationType == NotificationType.Notification)
@@ -57,7 +57,7 @@ namespace TfsPlugin.NetBuildQueue
 			}
 			catch (Exception e)
 			{
-				TeamFoundationApplicationCore.LogException($"An error occured in {Name}.", e);
+				Log.Error(e);
 			}
 
 			return EventNotificationStatus.ActionPermitted;
@@ -65,33 +65,82 @@ namespace TfsPlugin.NetBuildQueue
 
 		private void ProcessCheckinEvent(CheckinNotification args, TeamFoundationRequestContext context)
 		{
-			var location = context.GetService<TeamFoundationLocationService>();
-			var uri = location.GetSelfReferenceUri(context, location.GetServerAccessMapping(context));
-			var collection = new TfsTeamProjectCollection(uri);
-			var server = collection.GetService<VersionControlServer>();
-			var changeSet = server.GetChangeset(args.Changeset);
+			var total = Stopwatch.StartNew();
+			var cs = ReadChangeset(args.Changeset, context);
 
-			var id = changeSet.ChangesetId;
-			var author = changeSet.CommitterDisplayName;
-			var comment = changeSet.Comment;
-			var date = changeSet.CreationDate.ToUniversalTime();
+			List<Task> tasks = new List<Task>();
+
+			var id = cs.ChangesetId;
+			var author = cs.CommitterDisplayName;
+			var comment = cs.Comment;
+			var date = cs.CreationDate.ToUniversalTime();
 
 			var sb = new StringBuilder();
 			sb.AppendLine($"Change ID: {id}");
 			sb.AppendLine($"Change author: {author}");
 			sb.AppendLine($"Change comment: {comment}");
 			sb.AppendLine($"Change date (UTC): {date}");
+			sb.AppendLine();
 
-			foreach (var change in changeSet.Changes)
+			foreach (var change in cs.Changes)
 			{
 				var path = change.Item.ServerItem;
 				var type = change.ChangeType.ToString().ToLowerInvariant();
 
 				sb.AppendLine($"{path} ({type})");
+
+				var signal = new SourceChangedSignal
+				{
+					ChangeId = id.ToString(),
+					ChangeAuthor = author,
+					ChangeComment = comment,
+					ChangeDate = date,
+					ChangePath = path,
+					ChangeType = type
+				};
+
+				tasks.Add(Task.Factory.StartNew(() => ProcessSignal(signal)));
 			}
 
-			//TeamFoundationApplicationCore.Log($"{args.ChangesetOwner.DisplayName} committed changeset #{args.Changeset}.", c_eventId, EventLogEntryType.Information);
-			TeamFoundationApplicationCore.Log(sb.ToString(), c_eventId, EventLogEntryType.Information);
+			Task.WaitAll(tasks.ToArray());
+
+			total.Stop();
+			Log.Info($"Checkin processed in {total.ElapsedMilliseconds} ms.\r\n\r\n{sb}");
+		}
+
+		private Changeset ReadChangeset(int changesetId, TeamFoundationRequestContext context)
+		{
+			var sw = Stopwatch.StartNew();
+			var location = context.GetService<TeamFoundationLocationService>();
+			var uri = location.GetSelfReferenceUri(context, location.GetServerAccessMapping(context));
+			var collection = new TfsTeamProjectCollection(uri);
+			var server = collection.GetService<VersionControlServer>();
+			var changeset = server.GetChangeset(changesetId);
+			sw.Stop();
+
+			Log.Debug($"Changeset information read in {sw.ElapsedMilliseconds} ms.\r\n{uri.AbsoluteUri}");
+			return changeset;
+		}
+
+		private void ProcessSignal(SourceChangedSignal signal)
+		{
+			var log = new StringBuilder();
+
+			var db = new QueueDb(Config.DbConnection, Config.DbTimeout);
+			db.Log = new StringLog(log);
+
+			var engine = new QueueEngine(db);
+
+			var sw = Stopwatch.StartNew();
+			engine.ProcessSignal(signal);
+			sw.Stop();
+
+			Log.Debug(
+				$@"Signal processed in {sw.ElapsedMilliseconds} ms.
+---
+{JsonConvert.SerializeObject(signal)}
+---
+{log}");
 		}
 	}
 }
