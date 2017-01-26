@@ -13,12 +13,12 @@ namespace NetBuild.Queue.Debug
 		{
 			var config = new AppConfigReader();
 
-			var thumbprint = config.Get<string>("Security.Thumbprint");
-			var secure = new LocalEncryptor(thumbprint);
-
 			var dbConnection = config.Get<string>("NetBuild.DbConnection");
 			if (dbConnection.Contains("{password}"))
 			{
+				var thumbprint = config.Get<string>("Security.Thumbprint");
+				var secure = new LocalEncryptor(thumbprint);
+
 				var dbPassword = secure.DecryptUtf8(config.Get<string>("NetBuild.DbPassword"));
 				dbConnection = dbConnection.Replace("{password}", dbPassword);
 			}

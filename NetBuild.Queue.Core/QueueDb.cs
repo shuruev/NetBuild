@@ -110,6 +110,38 @@ namespace NetBuild.Queue.Core
 		}
 
 		/// <summary>
+		/// Starts build process for specified item, marking all the current modifications with specified reserve code.
+		/// </summary>
+		public void StartBuild(string itemCode, string reserveCode)
+		{
+			using (var conn = Open())
+			{
+				conn.Execute(
+					"Queue.StartBuild",
+					new { itemCode, reserveCode },
+					null,
+					m_commandTimeoutInSeconds,
+					CommandType.StoredProcedure);
+			}
+		}
+
+		/// <summary>
+		/// Marks specified build as completed, removing all corresponding modifications and updating related timestamps.
+		/// </summary>
+		public void CompleteBuild(string itemCode, string reserveCode)
+		{
+			using (var conn = Open())
+			{
+				conn.Execute(
+					"Queue.CompleteBuild",
+					new { itemCode, reserveCode },
+					null,
+					m_commandTimeoutInSeconds,
+					CommandType.StoredProcedure);
+			}
+		}
+
+		/// <summary>
 		/// Creates and opens new SQL connection, attaching logging instance if needed.
 		/// </summary>
 		private SqlConnection Open()
