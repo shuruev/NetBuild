@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +15,8 @@ namespace TfsPlugin.NetBuildQueue
 {
 	public class NetBuildQueuePlugin : ISubscriber
 	{
+		private const int c_maxDegreeOfParallelism = 5;
+
 		public string Name => "TfsPlugin.NetBuildQueue";
 		public SubscriberPriority Priority => SubscriberPriority.Normal;
 		public Type[] SubscribedTypes() => new[] { typeof(CheckinNotification) };
@@ -68,8 +69,6 @@ namespace TfsPlugin.NetBuildQueue
 			var total = Stopwatch.StartNew();
 			var cs = ReadChangeset(args.Changeset, context);
 
-			List<Task> tasks = new List<Task>();
-
 			var id = cs.ChangesetId;
 			var author = cs.CommitterDisplayName;
 			var comment = cs.Comment;
@@ -82,27 +81,31 @@ namespace TfsPlugin.NetBuildQueue
 			sb.AppendLine($"Change date (UTC): {date}");
 			sb.AppendLine();
 
-			foreach (var change in cs.Changes)
-			{
-				var path = change.Item.ServerItem;
-				var type = change.ChangeType.ToString().ToLowerInvariant();
-
-				sb.AppendLine($"{path} [{type}]");
-
-				var signal = new SourceChangedSignal
+			Parallel.ForEach(
+				cs.Changes,
+				new ParallelOptions { MaxDegreeOfParallelism = c_maxDegreeOfParallelism },
+				change =>
 				{
-					ChangeId = id.ToString(),
-					ChangeAuthor = author,
-					ChangeComment = comment,
-					ChangeDate = date,
-					ChangePath = path,
-					ChangeType = type
-				};
+					var path = change.Item.ServerItem;
+					var type = change.ChangeType.ToString().ToLowerInvariant();
 
-				tasks.Add(Task.Factory.StartNew(() => ProcessSignal(signal)));
-			}
+					lock (sb)
+					{
+						sb.AppendLine($"{path} [{type}]");
+					}
 
-			Task.WaitAll(tasks.ToArray());
+					var signal = new SourceChangedSignal
+					{
+						ChangeId = id.ToString(),
+						ChangeAuthor = author,
+						ChangeComment = comment,
+						ChangeDate = date,
+						ChangePath = path,
+						ChangeType = type
+					};
+
+					ProcessSignal(signal);
+				});
 
 			total.Stop();
 			Log.Info($"Checkin processed in {total.ElapsedMilliseconds} ms.\r\n\r\n{sb}");
@@ -132,7 +135,7 @@ namespace TfsPlugin.NetBuildQueue
 				db.Log = new StringLog(log);
 			}
 
-			var engine = new QueueEngine(db);
+			var engine = new QueueEngine(db, c_maxDegreeOfParallelism);
 
 			var sw = Stopwatch.StartNew();
 			engine.ProcessSignal(signal);

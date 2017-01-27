@@ -12,8 +12,8 @@ namespace NetBuild.Queue.Core
 	/// </summary>
 	public class QueueDb
 	{
-		protected readonly string m_connectionString;
-		protected readonly int m_commandTimeoutInSeconds;
+		private readonly string m_connectionString;
+		private readonly int m_commandTimeoutInSeconds;
 
 		/// <summary>
 		/// Simple logging instance to access diagnostics messages.

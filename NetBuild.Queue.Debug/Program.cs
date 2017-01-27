@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using Atom.Toolbox;
 using NetBuild.Common;
 using NetBuild.Queue.Core;
@@ -23,7 +24,9 @@ namespace NetBuild.Queue.Debug
 				dbConnection = dbConnection.Replace("{password}", dbPassword);
 			}
 
-			var db = new QueueDb(dbConnection, TimeSpan.FromSeconds(10));
+			MultiThreadTest(dbConnection);
+
+			/*var db = new QueueDb(dbConnection, TimeSpan.FromSeconds(10));
 			db.Log = new ConsoleLog();
 
 			var engine = new QueueEngine(db);
@@ -32,14 +35,14 @@ namespace NetBuild.Queue.Debug
 
 			db.SubmitItem("V3.Storage");
 
-			/*for (int i = 0; i < 10; i++)
+			for (int i = 0; i < 10; i++)
 			{
 				var sw = Stopwatch.StartNew();
 				db.SetTriggers("V3.Storage", "ReferenceItem", new[] { "Project3", "Project4", "Project5" });
 				db.SetTriggers("V3.Storage", "ReferenceItem", new List<string>());
 				sw.Stop();
 				Console.WriteLine(sw.ElapsedMilliseconds);
-			}*/
+			}
 
 			//db.ProcessSignal("BuildComplete", "{ \"item\": \"Project3\" }");
 			engine.ProcessSignal(new BuildCompleteSignal { ProjectItem = "Project3" });
@@ -51,10 +54,36 @@ namespace NetBuild.Queue.Debug
 				ChangeType = "edit",
 				ChangeComment = "Implemented initial version",
 				ChangeDate = DateTime.UtcNow
-			});
+			});*/
 
 			Console.WriteLine("Done.");
 			Console.ReadKey();
+		}
+
+		public static void MultiThreadTest(string dbConnection)
+		{
+			//ThreadPool.SetMaxThreads(50, 50);
+			for (int i = 0; i < 10000; i++)
+			{
+				var thread = new Thread(args => DoJob((string)((object[])args)[0], (int)((object[])args)[1]));
+				thread.Start(new object[] { dbConnection, i });
+			}
+		}
+
+		public static void DoJob(string dbConnection, int index)
+		{
+			try
+			{
+				//var db = new QueueDb(dbConnection, TimeSpan.FromSeconds(10));
+				//var engine = new QueueEngine(db, 5);
+				Console.WriteLine($"Hello from #{index} (.NET thread {Thread.CurrentThread.ManagedThreadId})");
+				Thread.Sleep(50000);
+				Console.WriteLine($"DONE #{index} (.NET thread {Thread.CurrentThread.ManagedThreadId})");
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
+			}
 		}
 	}
 }

@@ -8,6 +8,8 @@ namespace CCNet.NetBuildQueue.Plugin
 {
 	public abstract class NetBuildPlugin
 	{
+		private const int c_maxDegreeOfParallelism = 5;
+
 		[ReflectorProperty("item", Required = false)]
 		public string ItemName { get; set; }
 
@@ -21,13 +23,14 @@ namespace CCNet.NetBuildQueue.Plugin
 		public string EncryptedPassword { get; set; }
 
 		protected string m_itemCode;
-		protected QueueDb m_db;
+		protected QueueEngine m_db;
 
 		protected virtual void Init(string projectName)
 		{
 			m_itemCode = String.IsNullOrEmpty(ItemName) ? projectName : ItemName;
 
-			m_db = InitDb();
+			var db = InitDb();
+			m_db = new QueueEngine(db, c_maxDegreeOfParallelism);
 
 			Log.Debug($"[NETBUILD] Initialized database connection for '{m_itemCode}'.");
 		}
