@@ -10,7 +10,21 @@ namespace NetBuild.Queue.Debug
 {
 	public class Program
 	{
+		private static string s_connection;
+
 		public static void Main(string[] args)
+		{
+			s_connection = ReadConnection();
+
+			DebugCache();
+			//DebugEngine();
+			//MultiThreadTest();
+
+			Console.WriteLine("Done.");
+			Console.ReadKey();
+		}
+
+		public static string ReadConnection()
 		{
 			var config = new AppConfigReader();
 
@@ -24,12 +38,27 @@ namespace NetBuild.Queue.Debug
 				dbConnection = dbConnection.Replace("{password}", dbPassword);
 			}
 
-			MultiThreadTest(dbConnection);
+			return dbConnection;
+		}
 
-			/*var db = new QueueDb(dbConnection, TimeSpan.FromSeconds(10));
+		public static void DebugCache()
+		{
+			var cache = new QueueCache(@"C:\All\QueueCache");
+			var x = cache.IsCached("asasd");
+			cache.SetCache("asasd", TimeSpan.FromSeconds(30));
+			var y = cache.IsCached("asasd");
+			cache.SetCache("asasd", TimeSpan.FromSeconds(30));
+			var z = cache.IsCached("asasd");
+			z = cache.IsCached("asasd");
+			z = cache.IsCached("asasd");
+		}
+
+		public static void DebugEngine()
+		{
+			var db = new QueueDb(s_connection, TimeSpan.FromSeconds(10));
 			db.Log = new ConsoleLog();
 
-			var engine = new QueueEngine(db);
+			var engine = new QueueEngine(db, 5);
 
 			var rows = db.ShouldBuild("Project2");
 
@@ -54,23 +83,20 @@ namespace NetBuild.Queue.Debug
 				ChangeType = "edit",
 				ChangeComment = "Implemented initial version",
 				ChangeDate = DateTime.UtcNow
-			});*/
-
-			Console.WriteLine("Done.");
-			Console.ReadKey();
+			});
 		}
 
-		public static void MultiThreadTest(string dbConnection)
+		public static void MultiThreadTest()
 		{
 			//ThreadPool.SetMaxThreads(50, 50);
 			for (int i = 0; i < 10000; i++)
 			{
-				var thread = new Thread(args => DoJob((string)((object[])args)[0], (int)((object[])args)[1]));
-				thread.Start(new object[] { dbConnection, i });
+				var thread = new Thread(arg => DoJob((int)arg));
+				thread.Start(i);
 			}
 		}
 
-		public static void DoJob(string dbConnection, int index)
+		public static void DoJob(int index)
 		{
 			try
 			{

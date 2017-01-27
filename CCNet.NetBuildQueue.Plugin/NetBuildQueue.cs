@@ -12,8 +12,17 @@ namespace CCNet.NetBuildQueue.Plugin
 	[ReflectorType("netBuildQueue")]
 	public class NetBuildQueue : NetBuildPlugin, ISourceControl
 	{
+		private const int c_minTimeoutInMinutes = 15;
+		private const int c_maxTimeoutInMinutes = 25;
+
+		private Random m_random;
+		private QueueCache m_cache;
+
 		[ReflectorProperty("path", Required = false)]
 		public string SourcePath { get; set; }
+
+		[ReflectorProperty("cache")]
+		public string CachePath { get; set; }
 
 		public Modification[] GetModifications(IIntegrationResult from, IIntegrationResult to)
 		{
@@ -22,10 +31,21 @@ namespace CCNet.NetBuildQueue.Plugin
 				Init(from.ProjectName);
 			}
 
-			Log.Debug($"[NETBUILD] Getting changes for '{m_itemCode}'...", m_itemCode);
+			Log.Debug($"[NETBUILD] Checking cache for '{m_itemCode}'...");
+			if (m_cache.IsCached(m_itemCode))
+			{
+				Log.Debug($"[NETBUILD] No changes for '{m_itemCode}' due to local cache.");
+				return new Modification[0];
+			}
+
+			Log.Debug($"[NETBUILD] Getting changes for '{m_itemCode}'...");
 			var sw = Stopwatch.StartNew();
 			var modifications = m_db.ShouldBuild(m_itemCode).Select(Convert).ToArray();
 			sw.Stop();
+
+			var timeout = m_random.Next(c_minTimeoutInMinutes, c_maxTimeoutInMinutes);
+			Log.Debug($"[NETBUILD] Setting local cache for '{m_itemCode}' to {timeout} minutes...");
+			m_cache.SetCache(m_itemCode, TimeSpan.FromMinutes(timeout));
 
 			Log.Info($"[NETBUILD] {modifications.Length} change(s) found in {sw.ElapsedMilliseconds} ms.");
 			return modifications;
@@ -88,6 +108,10 @@ namespace CCNet.NetBuildQueue.Plugin
 
 			sw.Stop();
 			Log.Info($"[NETBUILD] {triggers.Count} trigger(s) for '{m_itemCode}' submitted in {sw.ElapsedMilliseconds} ms.");
+
+			m_random = new Random();
+			m_cache = new QueueCache(CachePath);
+			Log.Info($"[NETBUILD] Started source control tracking for {m_itemCode}.");
 		}
 
 		public void Purge(IProject project)

@@ -10,6 +10,9 @@ namespace CCNet.NetBuildQueue.Plugin
 	{
 		private const int c_maxDegreeOfParallelism = 5;
 
+		protected string m_itemCode;
+		protected QueueEngine m_db;
+
 		[ReflectorProperty("item", Required = false)]
 		public string ItemName { get; set; }
 
@@ -21,9 +24,6 @@ namespace CCNet.NetBuildQueue.Plugin
 
 		[ReflectorProperty("password", Required = false)]
 		public string EncryptedPassword { get; set; }
-
-		protected string m_itemCode;
-		protected QueueEngine m_db;
 
 		protected virtual void Init(string projectName)
 		{

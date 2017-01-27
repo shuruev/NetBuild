@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cache\QueueCache.cs" />
     <Compile Include="Engine\Limiter.cs" />
     <Compile Include="Engine\Signal\BuildCompleteSignal.cs" />
     <Compile Include="Engine\Signal\ISignal.cs" />
