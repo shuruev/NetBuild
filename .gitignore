@@ -4,6 +4,7 @@ TestResults
 packages
 *.user
 *.suo
+*.dbmdl
 App.Debug.config
 App.Release.config
 SlowCheetah.Transforms.targets
