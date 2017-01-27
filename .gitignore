@@ -5,6 +5,7 @@ packages
 *.user
 *.suo
 *.dbmdl
+*.jfm
 App.Debug.config
 App.Release.config
 SlowCheetah.Transforms.targets
