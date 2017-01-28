@@ -12,8 +12,8 @@ namespace CCNet.NetBuildQueue.Plugin
 	[ReflectorType("netBuildQueue")]
 	public class NetBuildQueue : NetBuildPlugin, ISourceControl
 	{
-		private const int c_minTimeoutInMinutes = 15;
-		private const int c_maxTimeoutInMinutes = 25;
+		private const int c_minTimeoutInSeconds = 15 * 60; // 15 min
+		private const int c_maxTimeoutInSeconds = 45 * 60; // 45 min
 
 		private Random m_random;
 		private QueueCache m_cache;
@@ -43,9 +43,10 @@ namespace CCNet.NetBuildQueue.Plugin
 			var modifications = m_db.ShouldBuild(m_itemCode).Select(Convert).ToArray();
 			sw.Stop();
 
-			var timeout = m_random.Next(c_minTimeoutInMinutes, c_maxTimeoutInMinutes);
-			Log.Debug($"[NETBUILD] Setting local cache for '{m_itemCode}' to {timeout} minutes...");
-			m_cache.SetCache(m_itemCode, TimeSpan.FromMinutes(timeout));
+			var seconds = m_random.Next(c_minTimeoutInSeconds, c_maxTimeoutInSeconds);
+			var timeout = TimeSpan.FromSeconds(seconds);
+			Log.Debug($"[NETBUILD] Setting local cache for '{m_itemCode}' to {timeout}...");
+			m_cache.SetCache(m_itemCode, timeout);
 
 			Log.Info($"[NETBUILD] {modifications.Length} change(s) found in {sw.ElapsedMilliseconds} ms.");
 			return modifications;

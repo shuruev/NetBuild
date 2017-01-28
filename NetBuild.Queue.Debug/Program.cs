@@ -16,9 +16,9 @@ namespace NetBuild.Queue.Debug
 		{
 			s_connection = ReadConnection();
 
-			DebugCache();
+			//DebugCache();
 			//DebugEngine();
-			//MultiThreadTest();
+			MultiThreadTest();
 
 			Console.WriteLine("Done.");
 			Console.ReadKey();
@@ -100,11 +100,14 @@ namespace NetBuild.Queue.Debug
 		{
 			try
 			{
+				var semaphore = new Semaphore(5, 5, "Oleg");
+				semaphore.WaitOne();
 				//var db = new QueueDb(dbConnection, TimeSpan.FromSeconds(10));
 				//var engine = new QueueEngine(db, 5);
 				Console.WriteLine($"Hello from #{index} (.NET thread {Thread.CurrentThread.ManagedThreadId})");
-				Thread.Sleep(50000);
+				Thread.Sleep(1000);
 				Console.WriteLine($"DONE #{index} (.NET thread {Thread.CurrentThread.ManagedThreadId})");
+				semaphore.Release();
 			}
 			catch (Exception e)
 			{
