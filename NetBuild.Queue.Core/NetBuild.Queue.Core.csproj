@@ -56,6 +56,9 @@
     <Compile Include="Engine\Signal\BuildCompleteSignal.cs" />
     <Compile Include="Engine\Signal\ISignal.cs" />
     <Compile Include="Engine\Signal\SourceChangedSignal.cs" />
+    <Compile Include="Engine\Trigger\ReferenceItemTrigger.cs" />
+    <Compile Include="Engine\Trigger\SourcePathTrigger.cs" />
+    <Compile Include="Engine\Trigger\ITrigger.cs" />
     <Compile Include="Log\ILog.cs" />
     <Compile Include="Engine\QueueEngine.cs" />
     <Compile Include="Log\StringLog.cs" />

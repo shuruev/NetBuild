@@ -17,8 +17,8 @@ namespace NetBuild.Queue.Debug
 			s_connection = ReadConnection();
 
 			//DebugCache();
-			//DebugEngine();
-			MultiThreadTest();
+			DebugEngine();
+			//MultiThreadTest();
 
 			Console.WriteLine("Done.");
 			Console.ReadKey();
@@ -67,15 +67,27 @@ namespace NetBuild.Queue.Debug
 			for (int i = 0; i < 10; i++)
 			{
 				var sw = Stopwatch.StartNew();
-				db.SetTriggers("V3.Storage", "ReferenceItem", new[] { "Project3", "Project4", "Project5" });
-				db.SetTriggers("V3.Storage", "ReferenceItem", new List<string>());
+
+				//db.SetTriggers("V3.Storage", "ReferenceItem", new[] { "Project3", "Project4", "Project5" });
+				engine.SetTriggers(
+					"V3.Storage",
+					new[]
+					{
+						new ReferenceItemTrigger { ProjectItem = "Project3" },
+						new ReferenceItemTrigger { ProjectItem = "Project4" },
+						new ReferenceItemTrigger { ProjectItem = "Project5" }
+					});
+
+				//db.SetTriggers("V3.Storage", "ReferenceItem", new List<string>());
+				engine.SetTriggers("V3.Storage", new List<ReferenceItemTrigger>());
+
 				sw.Stop();
 				Console.WriteLine(sw.ElapsedMilliseconds);
 			}
 
 			//db.ProcessSignal("BuildComplete", "{ \"item\": \"Project3\" }");
-			engine.ProcessSignal(new BuildCompleteSignal { ProjectItem = "Project3" });
-			engine.ProcessSignal(new SourceChangedSignal
+			var x = engine.ProcessSignal(new BuildCompleteSignal { ProjectItem = "Project3" });
+			var y = engine.ProcessSignal(new SourceChangedSignal
 			{
 				ChangeId = "11584",
 				ChangePath = "$/Main/Production/Metro/Services/Metro.Assessment/Metro.Assessment.Client/AssessmentClient.cs",

@@ -1,5 +1,5 @@
 ﻿-- =============================================
--- For a specified item, updates a complete set of its triggers with a given type.
+-- For a specified item, updates a complete set of its triggers of a given type.
 --
 -- Usage example:
 -- @itemCode: 'MyProject'

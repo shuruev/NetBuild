@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.TeamFoundation.Client;
@@ -67,6 +70,8 @@ namespace TfsPlugin.NetBuildQueue
 		private void ProcessCheckinEvent(CheckinNotification args, TeamFoundationRequestContext context)
 		{
 			var total = Stopwatch.StartNew();
+
+			// read detailed changeset information
 			var cs = ReadChangeset(args.Changeset, context);
 
 			var id = cs.ChangesetId;
@@ -74,6 +79,7 @@ namespace TfsPlugin.NetBuildQueue
 			var comment = cs.Comment;
 			var date = cs.CreationDate.ToUniversalTime();
 
+			// start building detailed log for debug mode
 			var sb = new StringBuilder();
 			sb.AppendLine($"Change ID: {id}");
 			sb.AppendLine($"Change author: {author}");
@@ -81,6 +87,9 @@ namespace TfsPlugin.NetBuildQueue
 			sb.AppendLine($"Change date (UTC): {date}");
 			sb.AppendLine();
 
+			var bag = new ConcurrentBag<string>();
+
+			// create and process a separate signal for every change within a changeset
 			Parallel.ForEach(
 				cs.Changes,
 				new ParallelOptions { MaxDegreeOfParallelism = c_maxDegreeOfParallelism },
@@ -104,8 +113,21 @@ namespace TfsPlugin.NetBuildQueue
 						ChangeType = type
 					};
 
-					ProcessSignal(signal);
+					var items = ProcessSignal(signal);
+					foreach (var item in items)
+						bag.Add(item);
 				});
+
+			// reset local cache for potentially affected items
+			if (!String.IsNullOrEmpty(Config.LocalCache))
+			{
+				var cache = new QueueCache(Config.LocalCache);
+				foreach (var item in bag.Distinct().ToList())
+				{
+					cache.RemoveCache(item);
+					Log.Debug($"Reset local cache for {item}.");
+				}
+			}
 
 			total.Stop();
 			Log.Info($"Checkin processed in {total.ElapsedMilliseconds} ms.\r\n\r\n{sb}");
@@ -125,7 +147,7 @@ namespace TfsPlugin.NetBuildQueue
 			return changeset;
 		}
 
-		private void ProcessSignal(SourceChangedSignal signal)
+		private List<string> ProcessSignal(SourceChangedSignal signal)
 		{
 			var log = new StringBuilder();
 
@@ -138,7 +160,7 @@ namespace TfsPlugin.NetBuildQueue
 			var engine = new QueueEngine(db, c_maxDegreeOfParallelism);
 
 			var sw = Stopwatch.StartNew();
-			engine.ProcessSignal(signal);
+			var items = engine.ProcessSignal(signal);
 			sw.Stop();
 
 			Log.Debug(
@@ -146,7 +168,10 @@ namespace TfsPlugin.NetBuildQueue
 
 {JsonConvert.SerializeObject(signal, Formatting.Indented)}
 
-{log}");
+{log}
+{String.Join(Environment.NewLine, items.Select(item => "- " + item))}");
+
+			return items;
 		}
 	}
 }

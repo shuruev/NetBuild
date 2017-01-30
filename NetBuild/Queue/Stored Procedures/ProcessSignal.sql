@@ -1,5 +1,6 @@
 ﻿-- =============================================
--- Processes any external signal, which potentially can trigger new builds.
+-- Processes any external signal which can trigger new builds, and returns a list
+-- of all potentially affected items.
 --
 -- Enumerates through all [Queue].[Detect_*] procedures in the database.
 -- Every detection procedure is supposed to take a specified signal and return
@@ -74,4 +75,10 @@ BEGIN
 		ModificationComment,
 		ModificationDate
 	FROM @result
+
+	SELECT DISTINCT
+		QI.Code
+	FROM @result T
+		INNER JOIN [Queue].Item QI
+		ON QI.Id = T.ItemId
 END

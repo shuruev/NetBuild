@@ -30,5 +30,5 @@ BEGIN
 		ON QI.Id = QIT.ItemId
 	WHERE
 		QT.[Type] = 'ReferenceItem'
-		AND QT.[Value] = JSON_VALUE(@signalValue, '$.item')
+		AND JSON_VALUE(QT.[Value], '$.item') = JSON_VALUE(@signalValue, '$.item')
 END

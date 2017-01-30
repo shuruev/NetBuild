@@ -99,13 +99,13 @@ namespace CCNet.NetBuildQueue.Plugin
 			sw.Stop();
 			Log.Info($"[NETBUILD] Item '{m_itemCode}' submitted in {sw.ElapsedMilliseconds} ms.");
 
-			var triggers = new List<string>();
+			var triggers = new List<SourcePathTrigger>();
 			if (!String.IsNullOrEmpty(SourcePath))
-				triggers.Add(SourcePath);
+				triggers.Add(new SourcePathTrigger { SourcePath = SourcePath });
 
 			Log.Debug($"[NETBUILD] Setting source control trigger for item '{m_itemCode}'...");
 			sw = Stopwatch.StartNew();
-			m_db.SetTriggers(m_itemCode, "SourcePath", triggers);
+			m_db.SetTriggers(m_itemCode, triggers);
 
 			sw.Stop();
 			Log.Info($"[NETBUILD] {triggers.Count} trigger(s) for '{m_itemCode}' submitted in {sw.ElapsedMilliseconds} ms.");

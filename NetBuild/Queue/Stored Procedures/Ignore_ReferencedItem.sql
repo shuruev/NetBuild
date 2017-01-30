@@ -22,7 +22,7 @@ BEGIN
 			INNER JOIN [Queue].Item QI
 			ON QI.Id = QB.ItemId
 			INNER JOIN [Queue].[Trigger] QT
-			ON QT.[Value] = QI.Code
+			ON JSON_VALUE(QT.[Value], '$.item') = QI.Code
 			INNER JOIN [Queue].ItemTrigger QIT
 			ON QIT.TriggerId = QT.Id
 		WHERE
@@ -37,7 +37,7 @@ BEGIN
 			INNER JOIN [Queue].Item QI
 			ON QI.Id = T.Id
 			INNER JOIN [Queue].[Trigger] QT
-			ON QT.[Value] = QI.Code
+			ON JSON_VALUE(QT.[Value], '$.item') = QI.Code
 			INNER JOIN [Queue].ItemTrigger QIT
 			ON QIT.TriggerId = QT.Id
 		WHERE

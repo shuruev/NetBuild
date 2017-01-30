@@ -64,5 +64,17 @@ namespace NetBuild.Queue.Core
 			var file = FilePath(itemCode);
 			File.WriteAllText(file, timestamp.ToString());
 		}
+
+		/// <summary>
+		/// Removes caching state for a specified item.
+		/// </summary>
+		public void RemoveCache(string itemCode)
+		{
+			if (String.IsNullOrEmpty(itemCode))
+				throw new ArgumentNullException(nameof(itemCode));
+
+			var file = FilePath(itemCode);
+			File.Delete(file);
+		}
 	}
 }

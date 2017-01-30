@@ -54,5 +54,5 @@ BEGIN
 		ON QI.Id = QIT.ItemId
 	WHERE
 		QT.[Type] = 'SourcePath'
-		AND JSON_VALUE(@signalValue, '$.path') LIKE QT.[Value] + '%'
+		AND JSON_VALUE(@signalValue, '$.path') LIKE JSON_VALUE(QT.[Value], '$.path') + '%'
 END

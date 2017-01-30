@@ -23,6 +23,11 @@ namespace TfsPlugin.NetBuildQueue
 		public static bool DebugMode { get; set; }
 
 		/// <summary>
+		/// Gets or sets local cache folder.
+		/// </summary>
+		public static string LocalCache { get; set; }
+
+		/// <summary>
 		/// Gets or sets database connection string.
 		/// </summary>
 		public static string DbConnection { get; set; }
@@ -50,6 +55,8 @@ namespace TfsPlugin.NetBuildQueue
 			DebugMode = reader.Get<bool>("Debug.Enabled");
 
 			Log.Debug($"Loading configuration from: {assemblyPath}");
+
+			LocalCache = reader.Get<string>("NetBuild.LocalCache", null);
 
 			var dbConnection = reader.Get<string>("NetBuild.DbConnection");
 			if (dbConnection.Contains("{password}"))

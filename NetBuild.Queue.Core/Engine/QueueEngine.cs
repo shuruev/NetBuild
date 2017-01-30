@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace NetBuild.Queue.Core
@@ -46,28 +47,42 @@ namespace NetBuild.Queue.Core
 		}
 
 		/// <summary>
-		/// For a specified item, updates a complete set of its triggers with a given type.
+		/// For a specified item, updates a complete set of its triggers of a given type.
 		/// </summary>
-		public void SetTriggers(string itemCode, string triggerType, IEnumerable<string> triggerValues)
+		public void SetTriggers<TTrigger>(string itemCode, IEnumerable<TTrigger> triggers) where TTrigger : ITrigger, new()
 		{
+			var input = triggers.ToList();
+
+			var types = input.Select(trigger => trigger.TriggerType).Distinct().ToList();
+			if (types.Count > 1)
+				throw new InvalidOperationException($"Only triggers of the same type should be passed into this method, but found {types.Count} different types: {String.Join(", ", types.Select(name => "'" + name + "'"))}.");
+
+			var type = types.FirstOrDefault();
+			if (type == null)
+			{
+				// when we want to delete all existing triggers of a given type
+				// we use C# type information to determine corresponding trigger type
+				type = new TTrigger().TriggerType;
+			}
+
 			using (m_limiter.Wait())
 			{
-				m_db.SetTriggers(itemCode, triggerType, triggerValues);
+				m_db.SetTriggers(itemCode, type, input.Select(trigger => JsonConvert.SerializeObject(trigger, m_settings)));
 			}
 		}
 
 		/// <summary>
-		/// Processes any external signal, which potentially can trigger new builds.
+		/// Processes any external signal which can trigger new builds, and returns a list of all potentially affected items.
 		/// Can use known DTOs for their JSON representation.
 		/// </summary>
-		public void ProcessSignal<TSignal>(TSignal signal) where TSignal : ISignal
+		public List<string> ProcessSignal<TSignal>(TSignal signal) where TSignal : ISignal
 		{
 			if (signal == null)
 				throw new ArgumentNullException(nameof(signal));
 
 			using (m_limiter.Wait())
 			{
-				m_db.ProcessSignal(signal.SignalType, JsonConvert.SerializeObject(signal, m_settings));
+				return m_db.ProcessSignal(signal.SignalType, JsonConvert.SerializeObject(signal, m_settings));
 			}
 		}
 

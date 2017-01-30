@@ -52,7 +52,7 @@ namespace NetBuild.Queue.Core
 		}
 
 		/// <summary>
-		/// For a specified item, updates a complete set of its triggers with a given type.
+		/// For a specified item, updates a complete set of its triggers of a given type.
 		/// </summary>
 		public void SetTriggers(string itemCode, string triggerType, IEnumerable<string> triggerValues)
 		{
@@ -76,18 +76,20 @@ namespace NetBuild.Queue.Core
 		}
 
 		/// <summary>
-		/// Processes any external signal, which potentially can trigger new builds.
+		/// Processes any external signal which can trigger new builds, and returns a list of all potentially affected items.
 		/// </summary>
-		public void ProcessSignal(string signalType, string signalValue)
+		public List<string> ProcessSignal(string signalType, string signalValue)
 		{
 			using (var conn = Open())
 			{
-				conn.Execute(
+				return conn.Query<string>(
 					"Queue.ProcessSignal",
 					new { signalType, signalValue },
 					null,
+					true,
 					m_commandTimeoutInSeconds,
-					CommandType.StoredProcedure);
+					CommandType.StoredProcedure)
+					.ToList();
 			}
 		}
 
