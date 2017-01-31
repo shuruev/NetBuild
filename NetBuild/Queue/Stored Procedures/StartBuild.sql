@@ -1,6 +1,6 @@
 ﻿-- =============================================
 -- Starts build process for specified item, marking all the current
--- modifications with specified reserve code.
+-- modifications with specified build code.
 --
 -- This behavior is needed to avoid situations when we started build process for Project1,
 -- then some more modifications occured, then build was completed for Project1.
@@ -9,18 +9,43 @@
 --
 -- Usage example:
 -- @itemCode: 'V3.Storage'
--- @reserveCode: '17.1.25.3'
+-- @buildCode: '17.1.25.3'
 -- =============================================
 CREATE PROCEDURE [Queue].[StartBuild]
 	@itemCode NVARCHAR(100),
-	@reserveCode NVARCHAR(100)
+	@buildCode NVARCHAR(100)
 AS
 BEGIN
 	SET NOCOUNT ON
+	DECLARE @message NVARCHAR(255)
+
+	-- resolve internal item ID
+	DECLARE @itemId INT
+	SELECT TOP 1 @itemId = Id FROM [Queue].Item WHERE Code = @itemCode
+	IF (@itemId IS NULL)
+	BEGIN
+		SET @message = 'Unknown item code "' + @itemCode + '"'
+		RAISERROR (@message, 16, 1)
+		RETURN
+	END
+
+	DECLARE @buildId BIGINT
+
+	-- add new build record
+	INSERT INTO [Queue].Build (
+		ItemId,
+		Code,
+		[Started])
+	VALUES (
+		@itemId,
+		@buildCode,
+		GETUTCDATE())
+
+	SET @buildId = @@IDENTITY
 
 	-- get all the current modifications
-	DECLARE @build TABLE (
-		BuildId BIGINT NOT NULL,
+	DECLARE @modification TABLE (
+		Id BIGINT NOT NULL,
 		ModificationCode NVARCHAR(100),
 		ModificationType NVARCHAR(100),
 		ModificationAuthor NVARCHAR(100),
@@ -29,14 +54,12 @@ BEGIN
 		ModificationDate DATETIME2(0),
 		Created DATETIME2(2) NOT NULL)
 
-	INSERT INTO @build EXEC [Queue].ShouldBuild @itemCode
+	INSERT INTO @modification EXEC [Queue].ShouldBuild @itemCode
 
-	-- update reserve code
-	UPDATE QB
-	SET
-		ReserveCode = @reserveCode,
-		Reserved = GETUTCDATE()
-	FROM [Queue].Build QB
-		INNER JOIN @build B
-		ON B.BuildId = QB.Id
+	-- update build ID
+	UPDATE QM
+	SET BuildId = @buildId
+	FROM [Queue].Modification QM
+		INNER JOIN @modification M
+		ON M.Id = QM.Id
 END

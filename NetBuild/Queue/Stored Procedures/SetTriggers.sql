@@ -49,7 +49,7 @@ BEGIN
 
 	-- resolve internal item ID
 	DECLARE @itemId INT
-	SELECT @itemId = Id FROM [Queue].Item WHERE Code = @itemCode
+	SELECT TOP 1 @itemId = Id FROM [Queue].Item WHERE Code = @itemCode
 	IF (@itemId IS NULL)
 	BEGIN
 		DECLARE @message NVARCHAR(255)

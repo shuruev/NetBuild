@@ -80,5 +80,8 @@
     <Build Include="Queue\Stored Procedures\SubmitItem.sql" />
     <Build Include="Queue\User Defined Types\TriggerValue.sql" />
     <Build Include="Security\Queue.sql" />
+    <Build Include="Queue\Tables\Modification.sql" />
+    <Build Include="Queue\Stored Procedures\Ignore_ConcurrentBuild.sql" />
+    <Build Include="Queue\Stored Procedures\Detect_RebuildAll.sql" />
   </ItemGroup>
 </Project>

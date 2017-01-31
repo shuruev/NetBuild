@@ -18,9 +18,9 @@ BEGIN
 		-- all items which reference any of the currently queued items
 		SELECT
 			QIT.ItemId
-		FROM [Queue].Build QB
+		FROM [Queue].Modification QM
 			INNER JOIN [Queue].Item QI
-			ON QI.Id = QB.ItemId
+			ON QI.Id = QM.ItemId
 			INNER JOIN [Queue].[Trigger] QT
 			ON JSON_VALUE(QT.[Value], '$.item') = QI.Code
 			INNER JOIN [Queue].ItemTrigger QIT

@@ -6,11 +6,12 @@
 -- Every detection procedure is supposed to take a specified signal and return
 -- corresponding items which should be triggered for build, including modification details:
 -- 1). internal item ID
--- 2). modification type
--- 3). modification author
--- 4). modification item
--- 5). modification comment
--- 6). modification date
+-- 2). modification ID
+-- 3). modification type
+-- 4). modification author
+-- 5). modification item
+-- 6). modification comment
+-- 7). modification date
 --
 -- Usage example:
 -- @signalType: 'BuildComplete'
@@ -34,7 +35,7 @@ BEGIN
 		OBJECT_SCHEMA_NAME([object_id]) = 'Queue'
 		AND [name] LIKE 'Detect[_]%'
 
-	DECLARE @result TABLE (
+	DECLARE @modification TABLE (
 		ItemId INT NOT NULL,
 		ModificationCode NVARCHAR(100),
 		ModificationType NVARCHAR(100),
@@ -49,7 +50,7 @@ BEGIN
 	WHILE @@FETCH_STATUS = 0
 	BEGIN
 		PRINT 'Executing ' + @name + '...'
-		INSERT INTO @result EXEC @name @signalType, @signalValue
+		INSERT INTO @modification EXEC @name @signalType, @signalValue
 		PRINT CAST(@@ROWCOUNT AS VARCHAR(10)) + ' item(s) found.'
 
 		FETCH NEXT FROM ProcedureCursor INTO @name
@@ -58,7 +59,7 @@ BEGIN
 	CLOSE ProcedureCursor
 	DEALLOCATE ProcedureCursor
 
-	INSERT INTO [Queue].Build (
+	INSERT INTO [Queue].Modification (
 		ItemId,
 		ModificationCode,
 		ModificationType,
@@ -74,11 +75,11 @@ BEGIN
 		ModificationItem,
 		ModificationComment,
 		ModificationDate
-	FROM @result
+	FROM @modification
 
 	SELECT DISTINCT
 		QI.Code
-	FROM @result T
+	FROM [Queue].Modification QM
 		INNER JOIN [Queue].Item QI
-		ON QI.Id = T.ItemId
+		ON QI.Id = QM.ItemId
 END

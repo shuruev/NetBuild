@@ -19,8 +19,8 @@ BEGIN
 	SET NOCOUNT ON
 
 	-- check if there are any modifications in the build queue
-	DECLARE @build TABLE (
-		BuildId BIGINT NOT NULL,
+	DECLARE @modification TABLE (
+		Id BIGINT NOT NULL,
 		ModificationCode NVARCHAR(100),
 		ModificationType NVARCHAR(100),
 		ModificationAuthor NVARCHAR(100),
@@ -29,24 +29,24 @@ BEGIN
 		ModificationDate DATETIME2(0),
 		Created DATETIME2(2) NOT NULL)
 
-	INSERT INTO @build
+	INSERT INTO @modification
 	SELECT
-		QB.Id,
-		QB.ModificationCode,
-		QB.ModificationType,
-		QB.ModificationAuthor,
-		QB.ModificationItem,
-		QB.ModificationComment,
-		QB.ModificationDate,
-		QB.Created
-	FROM [Queue].Build QB
+		QM.Id,
+		QM.ModificationCode,
+		QM.ModificationType,
+		QM.ModificationAuthor,
+		QM.ModificationItem,
+		QM.ModificationComment,
+		QM.ModificationDate,
+		QM.Created
+	FROM [Queue].Modification QM
 		INNER JOIN [Queue].Item QI
-		ON QI.Id = QB.ItemId
+		ON QI.Id = QM.ItemId
 	WHERE
 		QI.Code = @itemCode
 
 	-- if no modifications found, return nothing
-	IF NOT EXISTS (SELECT * FROM @build)
+	IF NOT EXISTS (SELECT * FROM @modification)
 	BEGIN
 		RETURN
 	END
@@ -94,7 +94,7 @@ BEGIN
 	-- otherwise return all corresponding modifications
 	PRINT 'Build should not be ignored.'
 	SELECT
-		BuildId,
+		Id,
 		ModificationCode,
 		ModificationType,
 		ModificationAuthor,
@@ -102,5 +102,5 @@ BEGIN
 		ModificationComment,
 		ModificationDate,
 		Created
-	FROM @build
+	FROM @modification
 END
