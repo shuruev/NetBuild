@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NetBuild.Common;
 
 namespace NetBuild.Queue.Engine
 {
@@ -10,9 +11,10 @@ namespace NetBuild.Queue.Engine
 		private readonly Triggers m_triggers;
 		private readonly Modifications m_modifications;
 
+		private readonly ILogger m_logger;
 		private readonly List<IDetector> m_detectors;
 
-		public QueueEngine(Triggers triggers, Modifications modifications)
+		public QueueEngine(Triggers triggers, Modifications modifications, ILogger logger = null)
 		{
 			if (triggers == null)
 				throw new ArgumentNullException(nameof(triggers));
@@ -23,6 +25,7 @@ namespace NetBuild.Queue.Engine
 			m_triggers = triggers;
 			m_modifications = modifications;
 
+			m_logger = logger;
 			m_detectors = new List<IDetector>();
 		}
 
@@ -32,6 +35,7 @@ namespace NetBuild.Queue.Engine
 				throw new ArgumentNullException(nameof(detector));
 
 			m_detectors.Add(detector);
+			m_logger.LogDebug("Added detector {DetectorType}.", detector.GetType().Name);
 		}
 
 		public void Load()

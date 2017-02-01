@@ -5,8 +5,10 @@ using System.Net.Http;
 using System.Threading;
 using Atom.Toolbox;
 using NetBuild.Common;
+using NetBuild.Queue.Client;
 using NetBuild.Queue.Core;
 using NetBuild.Queue.Engine;
+using Serilog;
 using BuildCompleteSignal = NetBuild.Queue.Core.BuildCompleteSignal;
 using QueueEngine = NetBuild.Queue.Core.QueueEngine;
 using ReferenceItemTrigger = NetBuild.Queue.Core.ReferenceItemTrigger;
@@ -43,7 +45,8 @@ namespace NetBuild.Queue.Debug
 		{
 			s_connection = ReadConnection();
 
-			Debug2Engine();
+			DebugClient();
+			//Debug2Engine();
 			//Debug2Triggers();
 			//Debug2Modifications();
 			//DebugHttp();
@@ -53,6 +56,21 @@ namespace NetBuild.Queue.Debug
 
 			Console.WriteLine("Done.");
 			Console.ReadKey();
+		}
+
+		public static void DebugClient()
+		{
+			var logger = new LoggerConfiguration()
+				.MinimumLevel.Verbose()
+				.WriteTo.LiterateConsole()
+				.CreateLogger();
+
+			var client = new QueueClient("http://localhost:8000")
+			{
+				Logger = new SerilogAdapter(logger)
+			};
+
+			Console.WriteLine(client.Test("Project1"));
 		}
 
 		public static void Debug2Engine()
