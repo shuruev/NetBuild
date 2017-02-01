@@ -103,4 +103,12 @@ BEGIN
 		ModificationDate,
 		Created
 	FROM @modification
+
+	-- and update modification table so those modifications
+	-- would immediately represent started builds
+	UPDATE QM
+	SET Reserved = GETUTCDATE()
+	FROM [Queue].Modification QM
+		INNER JOIN @modification M
+		ON M.Id = QM.Id
 END

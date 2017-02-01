@@ -1,0 +1,16 @@
+﻿using Newtonsoft.Json;
+
+namespace NetBuild.Queue.Engine
+{
+	/// <summary>
+	/// A trigger which can issue builds based on source control changes.
+	/// </summary>
+	public class SourcePathTrigger : ITrigger
+	{
+		/// <summary>
+		/// Gets or sets source control path (e.g. '"path": "$/Main/ContentCast/V3/V3.Storage/Client/V3Client.cs"').
+		/// </summary>
+		[JsonProperty("path")]
+		public string SourcePath { get; set; }
+	}
+}

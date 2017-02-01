@@ -1,28 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Threading;
 using Atom.Toolbox;
 using NetBuild.Common;
 using NetBuild.Queue.Core;
+using NetBuild.Queue.Engine;
+using BuildCompleteSignal = NetBuild.Queue.Core.BuildCompleteSignal;
+using QueueEngine = NetBuild.Queue.Core.QueueEngine;
+using ReferenceItemTrigger = NetBuild.Queue.Core.ReferenceItemTrigger;
+using QueueEngine2 = NetBuild.Queue.Engine.QueueEngine;
+using SourcePathTrigger2 = NetBuild.Queue.Engine.SourcePathTrigger;
+using ReferenceItemTrigger2 = NetBuild.Queue.Engine.ReferenceItemTrigger;
+using SourceChangedSignal = NetBuild.Queue.Core.SourceChangedSignal;
+using SourceChangedSignal2 = NetBuild.Queue.Engine.SourceChangedSignal;
 
 namespace NetBuild.Queue.Debug
 {
 	public class Program
 	{
 		private static string s_connection;
-
-		public static void Main(string[] args)
-		{
-			s_connection = ReadConnection();
-
-			//DebugCache();
-			DebugEngine();
-			//MultiThreadTest();
-
-			Console.WriteLine("Done.");
-			Console.ReadKey();
-		}
 
 		public static string ReadConnection()
 		{
@@ -39,6 +37,211 @@ namespace NetBuild.Queue.Debug
 			}
 
 			return dbConnection;
+		}
+
+		public static void Main(string[] args)
+		{
+			s_connection = ReadConnection();
+
+			Debug2Engine();
+			//Debug2Triggers();
+			//Debug2Modifications();
+			//DebugHttp();
+			//DebugCache();
+			//DebugEngine();
+			//MultiThreadTest();
+
+			Console.WriteLine("Done.");
+			Console.ReadKey();
+		}
+
+		public static void Debug2Engine()
+		{
+			var triggers = new Triggers(new TriggerStorage(s_connection, TimeSpan.FromSeconds(10)));
+			var modifications = new Modifications(new ModificationStorage(s_connection, TimeSpan.FromSeconds(10)));
+
+			var engine = new QueueEngine2(triggers, modifications);
+			engine.AddDetector(new SourceChangedDetector());
+			engine.AddDetector(new BuildCompleteDetector());
+
+			engine.Load();
+
+			engine.SetTriggers(
+				"Project1",
+				new[]
+				{
+					new ReferenceItemTrigger2 { ReferenceItem = "Project2" },
+					new ReferenceItemTrigger2 { ReferenceItem = "Project3" }
+				});
+
+			engine.SetTriggers(
+				"Project2",
+				new[]
+				{
+					new ReferenceItemTrigger2 { ReferenceItem = "Project4" }
+				});
+
+			engine.SetTriggers(
+				"Project3",
+				new[]
+				{
+					new ReferenceItemTrigger2 { ReferenceItem = "Project4" }
+				});
+
+			engine.SetTriggers(
+				"Project4",
+				new[]
+				{
+					new ReferenceItemTrigger2 { ReferenceItem = "Project5" }
+				});
+
+			engine.SetTriggers(
+				"Project1",
+				new[]
+				{
+					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services" }
+				});
+
+			engine.SetTriggers(
+				"Project2",
+				new[]
+				{
+					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services" }
+				});
+
+			engine.SetTriggers(
+				"Project3",
+				new[]
+				{
+					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services" }
+				});
+
+			engine.SetTriggers(
+				"Project4",
+				new[]
+				{
+					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services" }
+				});
+
+			engine.SetTriggers(
+				"Project5",
+				new[]
+				{
+					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services" }
+				});
+
+			engine.ProcessSignal(new SourceChangedSignal2
+			{
+				ChangeId = "11584",
+				ChangePath = "$/main/Production/Metro/Services/Metro.Assessment/Metro.Assessment.Client/AssessmentClient.cs",
+				ChangeAuthor = "Shuruev, Oleg",
+				ChangeType = "edit",
+				ChangeComment = "Implemented initial version",
+				ChangeDate = DateTime.UtcNow
+			});
+
+			var x1 = engine.ShouldBuild("Project1");
+			var x2 = engine.ShouldBuild("Project2");
+			var x3 = engine.ShouldBuild("Project3");
+			var x4 = engine.ShouldBuild("Project4");
+			var x5 = engine.ShouldBuild("Project5");
+		}
+
+		public static void Debug2Triggers()
+		{
+			var storage = new TriggerStorage(s_connection, TimeSpan.FromSeconds(10));
+			var triggers = new Triggers(storage);
+			triggers.Load();
+
+			triggers.Set(
+				"V3.Storage",
+				new[]
+				{
+					new ReferenceItemTrigger2 { ReferenceItem = "Project3" },
+					new ReferenceItemTrigger2 { ReferenceItem = "Project4" },
+					new ReferenceItemTrigger2 { ReferenceItem = "Project5" }
+				});
+
+			triggers.Set(
+				"V3.Storage1",
+				new[]
+				{
+					new ReferenceItemTrigger2 { ReferenceItem = "Project3" },
+					//new ReferenceItemTrigger2 { ReferenceItem = "Project4" },
+					new ReferenceItemTrigger2 { ReferenceItem = "Project5" }
+				});
+
+			triggers.Set(
+				"V3.Storage1",
+				new[]
+				{
+					new SourcePathTrigger2 { SourcePath = "Path #3" },
+					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services/Metro.Assessment" },
+					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services" }
+				});
+
+			triggers.Set(
+				"V3.Storage2",
+				new[]
+				{
+					new ReferenceItemTrigger2 { ReferenceItem = "Project3" },
+					//new ReferenceItemTrigger2 { ReferenceItem = "Project4" },
+					new ReferenceItemTrigger2 { ReferenceItem = "Project5" }
+				});
+
+			triggers.Set(
+				"Main",
+				new[]
+				{
+					new SourcePathTrigger2 { SourcePath = "$/Main" }
+				});
+		}
+
+		public static void Debug2Modifications()
+		{
+			var storage = new ModificationStorage(s_connection, TimeSpan.FromSeconds(10));
+			var modifications = new Modifications(storage);
+			modifications.Load();
+
+			var items = new List<ItemModification>();
+			for (int p = 0; p < 5; p++)
+			{
+				for (int i = 0; i < 10; i++)
+				{
+					var modification = new Modification
+					{
+						Code = $"{i}",
+						Item = "$/Main/Production/Metro/Services/Metro.Assessment/Metro.Assessment.Client/AssessmentClient.cs",
+						Author = "Shuruev, Oleg",
+						Type = "edit",
+						Comment = "Implemented initial version",
+						Date = DateTime.UtcNow
+					};
+
+					items.Add(new ItemModification { Item = $"Project{p}", Modification = modification });
+				}
+			}
+
+			modifications.Add(items);
+		}
+
+		public static void DebugHttp()
+		{
+			for (int i = 0; i < 100; i++)
+			{
+				var sw1 = Stopwatch.StartNew();
+				var client = new HttpClient();
+				var result1 = client.GetStringAsync("http://dev-metro.cnetcontent.com:2021/transform/status").Result;
+				sw1.Stop();
+
+				var sw2 = Stopwatch.StartNew();
+				var db = new QueueDb(s_connection, TimeSpan.FromSeconds(10));
+				var engine = new QueueEngine(db);
+				var result2 = engine.ShouldBuild("V3.Storage");
+				sw2.Stop();
+
+				Console.WriteLine($"{result1}\t{sw1.ElapsedMilliseconds} ms\t\t{result2.Count}\t{sw2.ElapsedMilliseconds} ms");
+			}
 		}
 
 		public static void DebugCache()
@@ -58,7 +261,7 @@ namespace NetBuild.Queue.Debug
 			var db = new QueueDb(s_connection, TimeSpan.FromSeconds(10));
 			db.Log = new ConsoleLog();
 
-			var engine = new QueueEngine(db, 5);
+			var engine = new QueueEngine(db);
 
 			var rows = db.ShouldBuild("Project2");
 
@@ -100,26 +303,41 @@ namespace NetBuild.Queue.Debug
 
 		public static void MultiThreadTest()
 		{
+			var threads = new List<Thread>();
+
 			//ThreadPool.SetMaxThreads(50, 50);
-			for (int i = 0; i < 10000; i++)
+			for (int i = 0; i < 1000; i++)
 			{
 				var thread = new Thread(arg => DoJob((int)arg));
 				thread.Start(i);
+
+				threads.Add(thread);
+			}
+
+			foreach (var thread in threads)
+			{
+				thread.Join();
 			}
 		}
+
+		private static ActionLimit Limit = new ActionLimit(2);
 
 		public static void DoJob(int index)
 		{
 			try
 			{
-				var semaphore = new Semaphore(5, 5, "Oleg");
-				semaphore.WaitOne();
-				//var db = new QueueDb(dbConnection, TimeSpan.FromSeconds(10));
-				//var engine = new QueueEngine(db, 5);
+				var db = new QueueDb(s_connection, TimeSpan.FromSeconds(10));
+				/*Limit.Do(() =>
+				{
+					db.SubmitItem("V3.Storage");
+					Thread.Sleep(1000);
+				});*/
+
+				var engine = new QueueEngine(db);
+				engine.SubmitItem("V3.Storage");
+
 				Console.WriteLine($"Hello from #{index} (.NET thread {Thread.CurrentThread.ManagedThreadId})");
-				Thread.Sleep(1000);
-				Console.WriteLine($"DONE #{index} (.NET thread {Thread.CurrentThread.ManagedThreadId})");
-				semaphore.Release();
+				//Console.WriteLine($"DONE #{index} (.NET thread {Thread.CurrentThread.ManagedThreadId})");
 			}
 			catch (Exception e)
 			{

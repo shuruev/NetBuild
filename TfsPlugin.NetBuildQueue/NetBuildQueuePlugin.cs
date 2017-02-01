@@ -157,7 +157,7 @@ namespace TfsPlugin.NetBuildQueue
 				db.Log = new StringLog(log);
 			}
 
-			var engine = new QueueEngine(db, c_maxDegreeOfParallelism);
+			var engine = new QueueEngine(db);
 
 			var sw = Stopwatch.StartNew();
 			var items = engine.ProcessSignal(signal);

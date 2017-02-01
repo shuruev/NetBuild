@@ -8,8 +8,6 @@ namespace CCNet.NetBuildQueue.Plugin
 {
 	public abstract class NetBuildPlugin
 	{
-		private const int c_maxDegreeOfParallelism = 5;
-
 		protected string m_itemCode;
 		protected QueueEngine m_db;
 
@@ -29,13 +27,13 @@ namespace CCNet.NetBuildQueue.Plugin
 		{
 			m_itemCode = String.IsNullOrEmpty(ItemName) ? projectName : ItemName;
 
-			var db = InitDb();
-			m_db = new QueueEngine(db, c_maxDegreeOfParallelism);
+			var db = ConfigureDb();
+			m_db = new QueueEngine(db);
 
 			Log.Debug($"[NETBUILD] Initialized database connection for '{m_itemCode}'.");
 		}
 
-		private QueueDb InitDb()
+		private QueueDb ConfigureDb()
 		{
 			// will put into configuration once there is a need
 			var timeout = TimeSpan.FromSeconds(15);

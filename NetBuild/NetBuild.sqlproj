@@ -62,6 +62,8 @@
     <Folder Include="Security\" />
     <Folder Include="Queue\Stored Procedures\" />
     <Folder Include="Queue\User Defined Types\" />
+    <Folder Include="Queue2\" />
+    <Folder Include="Queue2\Tables\" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Queue\Tables\ItemTrigger.sql" />
@@ -83,5 +85,8 @@
     <Build Include="Queue\Tables\Modification.sql" />
     <Build Include="Queue\Stored Procedures\Ignore_ConcurrentBuild.sql" />
     <Build Include="Queue\Stored Procedures\Detect_RebuildAll.sql" />
+    <Build Include="Queue2\Tables\Trigger.sql" />
+    <Build Include="Queue2\Tables\Modification.sql" />
+    <Build Include="Security\Queue2.sql" />
   </ItemGroup>
 </Project>

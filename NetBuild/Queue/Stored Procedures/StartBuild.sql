@@ -43,23 +43,8 @@ BEGIN
 
 	SET @buildId = @@IDENTITY
 
-	-- get all the current modifications
-	DECLARE @modification TABLE (
-		Id BIGINT NOT NULL,
-		ModificationCode NVARCHAR(100),
-		ModificationType NVARCHAR(100),
-		ModificationAuthor NVARCHAR(100),
-		ModificationItem NVARCHAR(200),
-		ModificationComment NVARCHAR(200),
-		ModificationDate DATETIME2(0),
-		Created DATETIME2(2) NOT NULL)
-
-	INSERT INTO @modification EXEC [Queue].ShouldBuild @itemCode
-
-	-- update build ID
-	UPDATE QM
+	-- update build ID for all the current modifications
+	UPDATE [Queue].Modification
 	SET BuildId = @buildId
-	FROM [Queue].Modification QM
-		INNER JOIN @modification M
-		ON M.Id = QM.Id
+	WHERE ItemId = @itemId
 END

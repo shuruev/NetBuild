@@ -8,7 +8,16 @@ namespace NetBuild.Queue.Core
 	/// </summary>
 	public class QueueCache
 	{
+		private const int c_retryCount = 3;
+
+		private static readonly ActionRetry s_retry;
+
 		private readonly string m_path;
+
+		static QueueCache()
+		{
+			s_retry = new ActionRetry(c_retryCount);
+		}
 
 		/// <summary>
 		/// Initializes a new instance.
@@ -38,7 +47,12 @@ namespace NetBuild.Queue.Core
 			if (!File.Exists(file))
 				return false;
 
-			var text = File.ReadAllText(file);
+			var text = String.Empty;
+			s_retry.Do(() =>
+			{
+				text = File.ReadAllText(file);
+			});
+
 			long timestamp;
 			if (!Int64.TryParse(text, out timestamp))
 				return false;
@@ -62,7 +76,10 @@ namespace NetBuild.Queue.Core
 			var timestamp = expiration.ToBinary();
 
 			var file = FilePath(itemCode);
-			File.WriteAllText(file, timestamp.ToString());
+			s_retry.Do(() =>
+			{
+				File.WriteAllText(file, timestamp.ToString());
+			});
 		}
 
 		/// <summary>
@@ -74,7 +91,10 @@ namespace NetBuild.Queue.Core
 				throw new ArgumentNullException(nameof(itemCode));
 
 			var file = FilePath(itemCode);
-			File.Delete(file);
+			s_retry.Do(() =>
+			{
+				File.Delete(file);
+			});
 		}
 	}
 }

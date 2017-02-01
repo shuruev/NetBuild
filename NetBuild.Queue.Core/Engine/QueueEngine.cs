@@ -10,22 +10,30 @@ namespace NetBuild.Queue.Core
 	/// </summary>
 	public class QueueEngine
 	{
-		private readonly QueueDb m_db;
-		private readonly Limiter m_limiter;
+		private const int c_retryCount = 3;
+		private const int c_maxParallelRequests = 10;
 
+		private static readonly ActionRetry s_retry;
+		private static readonly ActionLimit s_limit;
+
+		private readonly QueueDb m_db;
 		private readonly JsonSerializerSettings m_settings;
+
+		static QueueEngine()
+		{
+			s_retry = new ActionRetry(c_retryCount);
+			s_limit = new ActionLimit(c_maxParallelRequests);
+		}
 
 		/// <summary>
 		/// Initializes a new instance.
 		/// </summary>
-		public QueueEngine(QueueDb db, int maxParallelRequests)
+		public QueueEngine(QueueDb db)
 		{
 			if (db == null)
 				throw new ArgumentNullException(nameof(db));
 
 			m_db = db;
-			m_limiter = new Limiter(GetType().FullName, maxParallelRequests);
-
 			m_settings = new JsonSerializerSettings
 			{
 				Formatting = Formatting.None,
@@ -40,10 +48,13 @@ namespace NetBuild.Queue.Core
 		/// </summary>
 		public void SubmitItem(string itemCode)
 		{
-			using (m_limiter.Wait())
+			s_retry.Do(() =>
 			{
-				m_db.SubmitItem(itemCode);
-			}
+				s_limit.Do(() =>
+				{
+					m_db.SubmitItem(itemCode);
+				});
+			});
 		}
 
 		/// <summary>
@@ -65,10 +76,13 @@ namespace NetBuild.Queue.Core
 				type = new TTrigger().TriggerType;
 			}
 
-			using (m_limiter.Wait())
+			s_retry.Do(() =>
 			{
-				m_db.SetTriggers(itemCode, type, input.Select(trigger => JsonConvert.SerializeObject(trigger, m_settings)));
-			}
+				s_limit.Do(() =>
+				{
+					m_db.SetTriggers(itemCode, type, input.Select(trigger => JsonConvert.SerializeObject(trigger, m_settings)));
+				});
+			});
 		}
 
 		/// <summary>
@@ -80,43 +94,54 @@ namespace NetBuild.Queue.Core
 			if (signal == null)
 				throw new ArgumentNullException(nameof(signal));
 
-			using (m_limiter.Wait())
+			var result = new List<string>();
+
+			s_limit.Do(() =>
 			{
-				return m_db.ProcessSignal(signal.SignalType, JsonConvert.SerializeObject(signal, m_settings));
-			}
+				result = m_db.ProcessSignal(signal.SignalType, JsonConvert.SerializeObject(signal, m_settings));
+			});
+
+			return result;
 		}
 
 		/// <summary>
 		/// Checks whether specified item should be built, and returns all corresponding modifications related to this build.
 		/// </summary>
-		public List<BuildDto> ShouldBuild(string itemCode)
+		public List<ModificationRow> ShouldBuild(string itemCode)
 		{
-			using (m_limiter.Wait())
+			var result = new List<ModificationRow>();
+
+			s_retry.Do(() =>
 			{
-				return m_db.ShouldBuild(itemCode);
-			}
+				s_limit.Do(() =>
+				{
+					result = m_db.ShouldBuild(itemCode);
+				});
+			});
+
+			return result;
 		}
 
 		/// <summary>
-		/// Starts build process for specified item, marking all the current modifications with specified reserve code.
+		/// Starts build process for specified item, marking all the current modifications with specified build code.
 		/// </summary>
-		public void StartBuild(string itemCode, string reserveCode)
+		public void StartBuild(string itemCode, string buildCode)
 		{
-			using (m_limiter.Wait())
+			s_limit.Do(() =>
 			{
-				m_db.StartBuild(itemCode, reserveCode);
-			}
+				m_db.StartBuild(itemCode, buildCode);
+			});
 		}
 
 		/// <summary>
 		/// Marks specified build as completed, removing all corresponding modifications and updating related timestamps.
 		/// </summary>
-		public void CompleteBuild(string itemCode, string reserveCode)
+		public void CompleteBuild(string itemCode, string buildCode)
 		{
-			using (m_limiter.Wait())
+			s_limit.Do(() =>
 			{
-				m_db.CompleteBuild(itemCode, reserveCode);
-			}
+				m_db.CompleteBuild(itemCode, buildCode);
+			});
 		}
 	}
 }

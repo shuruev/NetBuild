@@ -96,11 +96,11 @@ namespace NetBuild.Queue.Core
 		/// <summary>
 		/// Checks whether specified item should be built, and returns all corresponding modifications related to this build.
 		/// </summary>
-		public List<BuildDto> ShouldBuild(string itemCode)
+		public List<ModificationRow> ShouldBuild(string itemCode)
 		{
 			using (var conn = Open())
 			{
-				return conn.Query<BuildDto>(
+				return conn.Query<ModificationRow>(
 					"Queue.ShouldBuild",
 					new { itemCode },
 					null,
@@ -112,15 +112,15 @@ namespace NetBuild.Queue.Core
 		}
 
 		/// <summary>
-		/// Starts build process for specified item, marking all the current modifications with specified reserve code.
+		/// Starts build process for specified item, marking all the current modifications with specified build code.
 		/// </summary>
-		public void StartBuild(string itemCode, string reserveCode)
+		public void StartBuild(string itemCode, string buildCode)
 		{
 			using (var conn = Open())
 			{
 				conn.Execute(
 					"Queue.StartBuild",
-					new { itemCode, reserveCode },
+					new { itemCode, buildCode },
 					null,
 					m_commandTimeoutInSeconds,
 					CommandType.StoredProcedure);
@@ -130,13 +130,13 @@ namespace NetBuild.Queue.Core
 		/// <summary>
 		/// Marks specified build as completed, removing all corresponding modifications and updating related timestamps.
 		/// </summary>
-		public void CompleteBuild(string itemCode, string reserveCode)
+		public void CompleteBuild(string itemCode, string buildCode)
 		{
 			using (var conn = Open())
 			{
 				conn.Execute(
 					"Queue.CompleteBuild",
-					new { itemCode, reserveCode },
+					new { itemCode, buildCode },
 					null,
 					m_commandTimeoutInSeconds,
 					CommandType.StoredProcedure);

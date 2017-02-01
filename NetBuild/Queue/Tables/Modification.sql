@@ -8,11 +8,14 @@
     [ModificationComment] NVARCHAR (200) NULL,
     [ModificationDate]    DATETIME2 (0)  NULL,
     [Created]             DATETIME2 (2)  CONSTRAINT [DF_Build_Created] DEFAULT (getutcdate()) NOT NULL,
+    [Reserved]            DATETIME2 (2)  NULL,
     [BuildId]             BIGINT         NULL,
     CONSTRAINT [PK_Modification] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_Modification_Build] FOREIGN KEY ([BuildId]) REFERENCES [Queue].[Build] ([Id]),
     CONSTRAINT [FK_Modification_Item] FOREIGN KEY ([ItemId]) REFERENCES [Queue].[Item] ([Id])
 );
+
+
 
 
 GO
@@ -23,4 +26,9 @@ CREATE NONCLUSTERED INDEX [IX_Modification_ItemId]
 GO
 CREATE NONCLUSTERED INDEX [IX_Modification_BuildId]
     ON [Queue].[Modification]([BuildId] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Modification_Reserved]
+    ON [Queue].[Modification]([Reserved] ASC);
 

@@ -52,7 +52,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cache\QueueCache.cs" />
-    <Compile Include="Engine\Limiter.cs" />
+    <Compile Include="Util\ActionRetry.cs" />
+    <Compile Include="Util\ActionLimit.cs" />
     <Compile Include="Engine\Signal\BuildCompleteSignal.cs" />
     <Compile Include="Engine\Signal\ISignal.cs" />
     <Compile Include="Engine\Signal\SourceChangedSignal.cs" />
@@ -63,8 +64,7 @@
     <Compile Include="Engine\QueueEngine.cs" />
     <Compile Include="Log\StringLog.cs" />
     <Compile Include="Log\ConsoleLog.cs" />
-    <Compile Include="Db\TriggerDto.cs" />
-    <Compile Include="Db\BuildDto.cs" />
+    <Compile Include="Db\ModificationRow.cs" />
     <Compile Include="Db\QueueDb.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

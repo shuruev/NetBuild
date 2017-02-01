@@ -12,13 +12,27 @@ BEGIN
 
 	DECLARE @count INT
 
-	-- select all running builds (which are not completed yet)
-	-- if they were started less than 10 minutes ago
 	SELECT @count = COUNT(*)
-	FROM [Queue].Build
-	WHERE
-		Completed IS NULL
-		AND DATEDIFF(MINUTE, [Started], GETUTCDATE()) < 10
+	FROM
+	(
+		-- select all running builds (which are not completed yet)
+		-- if they were started less than 10 minutes ago
+		SELECT ItemId
+		FROM [Queue].Build
+		WHERE
+			Completed IS NULL
+			AND DATEDIFF(MINUTE, [Started], GETUTCDATE()) < 10
+
+		UNION
+
+		-- select all project items where there are reserved
+		-- builds in the modification table (less than 10 minutes ago)
+		SELECT ItemId
+		FROM [Queue].Modification
+		WHERE
+			Reserved IS NOT NULL
+			AND DATEDIFF(MINUTE, [Reserved], GETUTCDATE()) < 10
+	) A
 
 	-- allow no more than 5 builds to run in parallel
 	IF @count >= 5 RETURN 1
