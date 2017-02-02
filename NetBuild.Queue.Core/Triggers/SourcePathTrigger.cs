@@ -8,11 +8,6 @@ namespace NetBuild.Queue.Core
 	public class SourcePathTrigger : ITrigger
 	{
 		/// <summary>
-		/// Gets trigger type.
-		/// </summary>
-		public string TriggerType => "SourcePath";
-
-		/// <summary>
 		/// Gets or sets source control path (e.g. '"path": "$/Main/ContentCast/V3/V3.Storage/Client/V3Client.cs"').
 		/// </summary>
 		[JsonProperty("path")]

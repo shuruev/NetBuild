@@ -33,10 +33,6 @@
     <DocumentationFile>bin\Release\NetBuild.Queue.Core.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Dapper, Version=1.50.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Dapper.1.50.2\lib\net45\Dapper.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -51,26 +47,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cache\QueueCache.cs" />
-    <Compile Include="Util\ActionRetry.cs" />
-    <Compile Include="Util\ActionLimit.cs" />
-    <Compile Include="Engine\Signal\BuildCompleteSignal.cs" />
-    <Compile Include="Engine\Signal\ISignal.cs" />
-    <Compile Include="Engine\Signal\SourceChangedSignal.cs" />
-    <Compile Include="Engine\Trigger\ReferenceItemTrigger.cs" />
-    <Compile Include="Engine\Trigger\SourcePathTrigger.cs" />
-    <Compile Include="Engine\Trigger\ITrigger.cs" />
-    <Compile Include="Log\ILog.cs" />
-    <Compile Include="Engine\QueueEngine.cs" />
-    <Compile Include="Log\StringLog.cs" />
-    <Compile Include="Log\ConsoleLog.cs" />
-    <Compile Include="Db\ModificationRow.cs" />
-    <Compile Include="Db\QueueDb.cs" />
+    <Compile Include="Signals\BuildCompleteSignal.cs" />
+    <Compile Include="Signals\ISignal.cs" />
+    <Compile Include="Signals\SourceChangedSignal.cs" />
+    <Compile Include="Triggers\ITrigger.cs" />
+    <Compile Include="Modifications\Modification.cs" />
+    <Compile Include="Triggers\ReferenceItemTrigger.cs" />
+    <Compile Include="Triggers\SourcePathTrigger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
