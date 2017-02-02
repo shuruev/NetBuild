@@ -1,4 +1,6 @@
-﻿namespace NetBuild.Queue.Engine
+﻿using NetBuild.Queue.Core;
+
+namespace NetBuild.Queue.Engine
 {
 	/// <summary>
 	/// Represents a single modification for the specific item.

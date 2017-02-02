@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using Dapper;
+using NetBuild.Queue.Core;
 
 namespace NetBuild.Queue.Engine
 {
@@ -22,6 +23,42 @@ namespace NetBuild.Queue.Engine
 
 			m_connectionString = connectionString;
 			m_commandTimeoutInSeconds = Convert.ToInt32(commandTimeout.TotalSeconds);
+		}
+
+		public List<ItemModification> Load()
+		{
+			using (var conn = new SqlConnection(m_connectionString))
+			{
+				conn.Open();
+
+				return conn.Query(
+					@"
+SELECT
+	BuildItem,
+	ModificationCode,
+	ModificationType,
+	ModificationAuthor,
+	ModificationItem,
+	ModificationComment,
+	ModificationDate
+FROM Queue2.Modification
+",
+					commandTimeout: m_commandTimeoutInSeconds)
+					.Select(i => new ItemModification
+					{
+						Item = i.BuildItem,
+						Modification = new Modification
+						{
+							Code = i.ModificationCode,
+							Type = i.ModificationType,
+							Author = i.ModificationAuthor,
+							Item = i.ModificationItem,
+							Comment = i.ModificationComment,
+							Date = i.ModificationDate
+						}
+					})
+					.ToList();
+			}
 		}
 
 		public void Save(IEnumerable<ItemModification> modifications)
@@ -70,41 +107,38 @@ namespace NetBuild.Queue.Engine
 			}
 		}
 
-		public List<ItemModification> Load()
+		public void Reserve(string item)
 		{
 			using (var conn = new SqlConnection(m_connectionString))
 			{
 				conn.Open();
 
-				return conn.Query(
+				conn.Execute(
 					@"
-SELECT
-	BuildItem,
-	ModificationCode,
-	ModificationType,
-	ModificationAuthor,
-	ModificationItem,
-	ModificationComment,
-	ModificationDate
-FROM Queue2.Modification",
-					null,
-					null,
-					true,
-					m_commandTimeoutInSeconds)
-					.Select(i => new ItemModification
-					{
-						Item = i.BuildItem,
-						Modification = new Modification
-						{
-							Code = i.ModificationCode,
-							Type = i.ModificationType,
-							Author = i.ModificationAuthor,
-							Item = i.ModificationItem,
-							Comment = i.ModificationComment,
-							Date = i.ModificationDate
-						}
-					})
-					.ToList();
+UPDATE [Queue2].[Modification]
+SET Reserved = GETUTCDATE()
+WHERE BuildItem = @item
+",
+					new { item },
+					commandTimeout: m_commandTimeoutInSeconds);
+			}
+		}
+
+		public void Release(string item)
+		{
+			using (var conn = new SqlConnection(m_connectionString))
+			{
+				conn.Open();
+
+				conn.Execute(
+					@"
+DELETE FROM [Queue2].[Modification]
+WHERE
+	BuildItem = @item
+	AND Reserved IS NOT NULL
+",
+					new { item },
+					commandTimeout: m_commandTimeoutInSeconds);
 			}
 		}
 	}

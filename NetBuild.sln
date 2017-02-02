@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetBuild.Queue", "NetBuild.Queue\NetBuild.Queue.csproj", "{4ED67CE7-5CCD-41CD-B394-7D23DE77E5E4}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetBuild.Queue.Core", "NetBuild.Queue.Core\NetBuild.Queue.Core.csproj", "{7DCAEE59-C47F-420B-85E0-0F798157F906}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CCNet.ShortDateLabeller.Plugin", "CCNet.ShortDateLabeller.Plugin\CCNet.ShortDateLabeller.Plugin.csproj", "{5A6AE2DF-2567-4FF5-9B2E-344E66B77906}"
@@ -29,7 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{7D
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "NetBuild", "NetBuild\NetBuild.sqlproj", "{28C302E7-6C7C-4378-BCDF-F917413E120E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassLibrary1", "ClassLibrary1\ClassLibrary1.csproj", "{04BA901E-C0DA-4B02-BE32-28904753AA2D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetBuild.Queue.Engine", "NetBuild.Queue.Engine\NetBuild.Queue.Engine.csproj", "{04BA901E-C0DA-4B02-BE32-28904753AA2D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetBuild.Queue.Server", "NetBuild.Queue.Server\NetBuild.Queue.Server.csproj", "{E2093224-8544-4029-AE9E-67B82CEAAA8E}"
 EndProject
@@ -41,10 +39,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4ED67CE7-5CCD-41CD-B394-7D23DE77E5E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4ED67CE7-5CCD-41CD-B394-7D23DE77E5E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4ED67CE7-5CCD-41CD-B394-7D23DE77E5E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4ED67CE7-5CCD-41CD-B394-7D23DE77E5E4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7DCAEE59-C47F-420B-85E0-0F798157F906}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7DCAEE59-C47F-420B-85E0-0F798157F906}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7DCAEE59-C47F-420B-85E0-0F798157F906}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -96,7 +90,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{4ED67CE7-5CCD-41CD-B394-7D23DE77E5E4} = {3A694D11-2EF5-41F0-9EF1-41B6C2BA6997}
 		{7DCAEE59-C47F-420B-85E0-0F798157F906} = {3A694D11-2EF5-41F0-9EF1-41B6C2BA6997}
 		{5A6AE2DF-2567-4FF5-9B2E-344E66B77906} = {200EB6EF-869C-4B60-9D01-22E4AEA5EE19}
 		{75FB1638-8DF0-4F09-85D2-FD04E1B0870B} = {200EB6EF-869C-4B60-9D01-22E4AEA5EE19}

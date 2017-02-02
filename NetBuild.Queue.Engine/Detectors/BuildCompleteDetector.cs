@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NetBuild.Common;
+using NetBuild.Queue.Core;
 
 namespace NetBuild.Queue.Engine
 {

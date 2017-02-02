@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NetBuild.Queue.Engine</RootNamespace>
-    <AssemblyName>ClassLibrary1</AssemblyName>
+    <AssemblyName>NetBuild.Queue.Engine</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -48,24 +48,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuildCompleteSignal.cs" />
-    <Compile Include="BuildCompleteDetector.cs" />
-    <Compile Include="SourceChangedDetector.cs" />
-    <Compile Include="IDetector.cs" />
-    <Compile Include="ISignal.cs" />
+    <Compile Include="Detectors\BuildCompleteDetector.cs" />
+    <Compile Include="Detectors\SourceChangedDetector.cs" />
+    <Compile Include="Detectors\IDetector.cs" />
     <Compile Include="Modifications\ItemModification.cs" />
-    <Compile Include="Modifications\Modification.cs" />
-    <Compile Include="SourceChangedSignal.cs" />
+    <Compile Include="Signals\KnownSignals.cs" />
     <Compile Include="Triggers\ItemTrigger.cs" />
-    <Compile Include="Triggers\ITrigger.cs" />
+    <Compile Include="Triggers\KnownTriggers.cs" />
     <Compile Include="Triggers\TriggerStorage.cs" />
-    <Compile Include="Triggers\ReferenceItemTrigger.cs" />
-    <Compile Include="Triggers\SourcePathTrigger.cs" />
     <Compile Include="Triggers\Triggers.cs" />
     <Compile Include="Modifications\ModificationStorage.cs" />
     <Compile Include="Modifications\Modifications.cs" />
-    <Compile Include="QueueItem.cs" />
-    <Compile Include="QueueCore.cs" />
     <Compile Include="QueueEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -76,6 +69,10 @@
     <ProjectReference Include="..\NetBuild.Common\NetBuild.Common.csproj">
       <Project>{dd4c2d39-b018-400b-a7b4-d7b81e1bf26f}</Project>
       <Name>NetBuild.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetBuild.Queue.Core\NetBuild.Queue.Core.csproj">
+      <Project>{7dcaee59-c47f-420b-85e0-0f798157f906}</Project>
+      <Name>NetBuild.Queue.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

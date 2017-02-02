@@ -9,14 +9,6 @@ using NetBuild.Queue.Client;
 using NetBuild.Queue.Core;
 using NetBuild.Queue.Engine;
 using Serilog;
-using BuildCompleteSignal = NetBuild.Queue.Core.BuildCompleteSignal;
-using QueueEngine = NetBuild.Queue.Core.QueueEngine;
-using ReferenceItemTrigger = NetBuild.Queue.Core.ReferenceItemTrigger;
-using QueueEngine2 = NetBuild.Queue.Engine.QueueEngine;
-using SourcePathTrigger2 = NetBuild.Queue.Engine.SourcePathTrigger;
-using ReferenceItemTrigger2 = NetBuild.Queue.Engine.ReferenceItemTrigger;
-using SourceChangedSignal = NetBuild.Queue.Core.SourceChangedSignal;
-using SourceChangedSignal2 = NetBuild.Queue.Engine.SourceChangedSignal;
 
 namespace NetBuild.Queue.Debug
 {
@@ -45,14 +37,10 @@ namespace NetBuild.Queue.Debug
 		{
 			s_connection = ReadConnection();
 
-			DebugClient();
-			//Debug2Engine();
-			//Debug2Triggers();
-			//Debug2Modifications();
-			//DebugHttp();
-			//DebugCache();
+			//DebugClient();
 			//DebugEngine();
-			//MultiThreadTest();
+			//DebugTriggers();
+			DebugModifications();
 
 			Console.WriteLine("Done.");
 			Console.ReadKey();
@@ -65,20 +53,41 @@ namespace NetBuild.Queue.Debug
 				.WriteTo.LiterateConsole()
 				.CreateLogger();
 
+			//var client = new QueueClient("http://rufc-devbuild.cneu.cnwk:8001")
 			var client = new QueueClient("http://localhost:8000")
 			{
 				Logger = new SerilogAdapter(logger)
 			};
 
-			Console.WriteLine(client.Test("Project1"));
+			/*var items = client.ProcessSignal(new SourceChangedSignal
+			{
+				ChangeId = "11584",
+				ChangePath = "$/main/Production/Metro/Services/Metro.Assessment/Metro.Assessment.Client/AssessmentClient.cs",
+				ChangeAuthor = "Shuruev, Oleg",
+				ChangeType = "edit",
+				ChangeComment = "Implemented initial version",
+				ChangeDate = DateTime.UtcNow
+			});*/
+
+			var items = client.ProcessSignal(new SourceChangedSignal
+			{
+				ChangeId = "13253",
+				ChangePath = "$/Sandbox/olshuruev/Temp/test.txt",
+				ChangeAuthor = "Shuruev, Oleg",
+				ChangeType = "edit",
+				ChangeComment = "Implemented initial version",
+				ChangeDate = DateTime.UtcNow
+			});
+
+			Console.WriteLine(client.ShouldBuild("Project1").Count);
 		}
 
-		public static void Debug2Engine()
+		public static void DebugEngine()
 		{
 			var triggers = new Triggers(new TriggerStorage(s_connection, TimeSpan.FromSeconds(10)));
 			var modifications = new Modifications(new ModificationStorage(s_connection, TimeSpan.FromSeconds(10)));
 
-			var engine = new QueueEngine2(triggers, modifications);
+			var engine = new QueueEngine(triggers, modifications);
 			engine.AddDetector(new SourceChangedDetector());
 			engine.AddDetector(new BuildCompleteDetector());
 
@@ -88,67 +97,67 @@ namespace NetBuild.Queue.Debug
 				"Project1",
 				new[]
 				{
-					new ReferenceItemTrigger2 { ReferenceItem = "Project2" },
-					new ReferenceItemTrigger2 { ReferenceItem = "Project3" }
+					new ReferenceItemTrigger { ReferenceItem = "Project2" },
+					new ReferenceItemTrigger { ReferenceItem = "Project3" }
 				});
 
 			engine.SetTriggers(
 				"Project2",
 				new[]
 				{
-					new ReferenceItemTrigger2 { ReferenceItem = "Project4" }
+					new ReferenceItemTrigger { ReferenceItem = "Project4" }
 				});
 
 			engine.SetTriggers(
 				"Project3",
 				new[]
 				{
-					new ReferenceItemTrigger2 { ReferenceItem = "Project4" }
+					new ReferenceItemTrigger { ReferenceItem = "Project4" }
 				});
 
 			engine.SetTriggers(
 				"Project4",
 				new[]
 				{
-					new ReferenceItemTrigger2 { ReferenceItem = "Project5" }
+					new ReferenceItemTrigger { ReferenceItem = "Project5" }
 				});
 
 			engine.SetTriggers(
 				"Project1",
 				new[]
 				{
-					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services" }
+					new SourcePathTrigger { SourcePath = "$/Main/Production/Metro/Services" }
 				});
 
 			engine.SetTriggers(
 				"Project2",
 				new[]
 				{
-					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services" }
+					new SourcePathTrigger { SourcePath = "$/Main/Production/Metro/Services" }
 				});
 
 			engine.SetTriggers(
 				"Project3",
 				new[]
 				{
-					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services" }
+					new SourcePathTrigger { SourcePath = "$/Main/Production/Metro/Services" }
 				});
 
 			engine.SetTriggers(
 				"Project4",
 				new[]
 				{
-					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services" }
+					new SourcePathTrigger { SourcePath = "$/Main/Production/Metro/Services" }
 				});
 
 			engine.SetTriggers(
 				"Project5",
 				new[]
 				{
-					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services" }
+					new SourcePathTrigger { SourcePath = "$/Main/Production/Metro/Services" }
 				});
 
-			engine.ProcessSignal(new SourceChangedSignal2
+			engine.ProcessSignal(new SourceChangedSignal
 			{
 				ChangeId = "11584",
 				ChangePath = "$/main/Production/Metro/Services/Metro.Assessment/Metro.Assessment.Client/AssessmentClient.cs",
@@ -165,7 +174,7 @@ namespace NetBuild.Queue.Debug
 			var x5 = engine.ShouldBuild("Project5");
 		}
 
-		public static void Debug2Triggers()
+		public static void DebugTriggers()
 		{
 			var storage = new TriggerStorage(s_connection, TimeSpan.FromSeconds(10));
 			var triggers = new Triggers(storage);
@@ -175,53 +184,53 @@ namespace NetBuild.Queue.Debug
 				"V3.Storage",
 				new[]
 				{
-					new ReferenceItemTrigger2 { ReferenceItem = "Project3" },
-					new ReferenceItemTrigger2 { ReferenceItem = "Project4" },
-					new ReferenceItemTrigger2 { ReferenceItem = "Project5" }
+					new ReferenceItemTrigger { ReferenceItem = "Project3" },
+					new ReferenceItemTrigger { ReferenceItem = "Project4" },
+					new ReferenceItemTrigger { ReferenceItem = "Project5" }
 				});
 
 			triggers.Set(
 				"V3.Storage1",
 				new[]
 				{
-					new ReferenceItemTrigger2 { ReferenceItem = "Project3" },
-					//new ReferenceItemTrigger2 { ReferenceItem = "Project4" },
-					new ReferenceItemTrigger2 { ReferenceItem = "Project5" }
+					new ReferenceItemTrigger { ReferenceItem = "Project3" },
+					//new ReferenceItemTrigger { ReferenceItem = "Project4" },
+					new ReferenceItemTrigger { ReferenceItem = "Project5" }
 				});
 
 			triggers.Set(
 				"V3.Storage1",
 				new[]
 				{
-					new SourcePathTrigger2 { SourcePath = "Path #3" },
-					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services/Metro.Assessment" },
-					new SourcePathTrigger2 { SourcePath = "$/Main/Production/Metro/Services" }
+					new SourcePathTrigger { SourcePath = "Path #3" },
+					new SourcePathTrigger { SourcePath = "$/Main/Production/Metro/Services/Metro.Assessment" },
+					new SourcePathTrigger { SourcePath = "$/Main/Production/Metro/Services" }
 				});
 
 			triggers.Set(
 				"V3.Storage2",
 				new[]
 				{
-					new ReferenceItemTrigger2 { ReferenceItem = "Project3" },
-					//new ReferenceItemTrigger2 { ReferenceItem = "Project4" },
-					new ReferenceItemTrigger2 { ReferenceItem = "Project5" }
+					new ReferenceItemTrigger { ReferenceItem = "Project3" },
+					//new ReferenceItemTrigger { ReferenceItem = "Project4" },
+					new ReferenceItemTrigger { ReferenceItem = "Project5" }
 				});
 
 			triggers.Set(
 				"Main",
 				new[]
 				{
-					new SourcePathTrigger2 { SourcePath = "$/Main" }
+					new SourcePathTrigger { SourcePath = "$/Main" }
 				});
 		}
 
-		public static void Debug2Modifications()
+		public static void DebugModifications()
 		{
 			var storage = new ModificationStorage(s_connection, TimeSpan.FromSeconds(10));
 			var modifications = new Modifications(storage);
 			modifications.Load();
 
-			var items = new List<ItemModification>();
+			/*var items = new List<ItemModification>();
 			for (int p = 0; p < 5; p++)
 			{
 				for (int i = 0; i < 10; i++)
@@ -240,127 +249,32 @@ namespace NetBuild.Queue.Debug
 				}
 			}
 
-			modifications.Add(items);
-		}
+			modifications.Add(items);*/
 
-		public static void DebugHttp()
-		{
-			for (int i = 0; i < 100; i++)
+			modifications.Reserve("Project2");
+
+			modifications.Add(new[]
 			{
-				var sw1 = Stopwatch.StartNew();
-				var client = new HttpClient();
-				var result1 = client.GetStringAsync("http://dev-metro.cnetcontent.com:2021/transform/status").Result;
-				sw1.Stop();
-
-				var sw2 = Stopwatch.StartNew();
-				var db = new QueueDb(s_connection, TimeSpan.FromSeconds(10));
-				var engine = new QueueEngine(db);
-				var result2 = engine.ShouldBuild("V3.Storage");
-				sw2.Stop();
-
-				Console.WriteLine($"{result1}\t{sw1.ElapsedMilliseconds} ms\t\t{result2.Count}\t{sw2.ElapsedMilliseconds} ms");
-			}
-		}
-
-		public static void DebugCache()
-		{
-			var cache = new QueueCache(@"C:\All\QueueCache");
-			var x = cache.IsCached("asasd");
-			cache.SetCache("asasd", TimeSpan.FromSeconds(30));
-			var y = cache.IsCached("asasd");
-			cache.SetCache("asasd", TimeSpan.FromSeconds(30));
-			var z = cache.IsCached("asasd");
-			z = cache.IsCached("asasd");
-			z = cache.IsCached("asasd");
-		}
-
-		public static void DebugEngine()
-		{
-			var db = new QueueDb(s_connection, TimeSpan.FromSeconds(10));
-			db.Log = new ConsoleLog();
-
-			var engine = new QueueEngine(db);
-
-			var rows = db.ShouldBuild("Project2");
-
-			db.SubmitItem("V3.Storage");
-
-			for (int i = 0; i < 10; i++)
-			{
-				var sw = Stopwatch.StartNew();
-
-				//db.SetTriggers("V3.Storage", "ReferenceItem", new[] { "Project3", "Project4", "Project5" });
-				engine.SetTriggers(
-					"V3.Storage",
-					new[]
-					{
-						new ReferenceItemTrigger { ProjectItem = "Project3" },
-						new ReferenceItemTrigger { ProjectItem = "Project4" },
-						new ReferenceItemTrigger { ProjectItem = "Project5" }
-					});
-
-				//db.SetTriggers("V3.Storage", "ReferenceItem", new List<string>());
-				engine.SetTriggers("V3.Storage", new List<ReferenceItemTrigger>());
-
-				sw.Stop();
-				Console.WriteLine(sw.ElapsedMilliseconds);
-			}
-
-			//db.ProcessSignal("BuildComplete", "{ \"item\": \"Project3\" }");
-			var x = engine.ProcessSignal(new BuildCompleteSignal { ProjectItem = "Project3" });
-			var y = engine.ProcessSignal(new SourceChangedSignal
-			{
-				ChangeId = "11584",
-				ChangePath = "$/Main/Production/Metro/Services/Metro.Assessment/Metro.Assessment.Client/AssessmentClient.cs",
-				ChangeAuthor = "Shuruev, Oleg",
-				ChangeType = "edit",
-				ChangeComment = "Implemented initial version",
-				ChangeDate = DateTime.UtcNow
-			});
-		}
-
-		public static void MultiThreadTest()
-		{
-			var threads = new List<Thread>();
-
-			//ThreadPool.SetMaxThreads(50, 50);
-			for (int i = 0; i < 1000; i++)
-			{
-				var thread = new Thread(arg => DoJob((int)arg));
-				thread.Start(i);
-
-				threads.Add(thread);
-			}
-
-			foreach (var thread in threads)
-			{
-				thread.Join();
-			}
-		}
-
-		private static ActionLimit Limit = new ActionLimit(2);
-
-		public static void DoJob(int index)
-		{
-			try
-			{
-				var db = new QueueDb(s_connection, TimeSpan.FromSeconds(10));
-				/*Limit.Do(() =>
+				new ItemModification
 				{
-					db.SubmitItem("V3.Storage");
-					Thread.Sleep(1000);
-				});*/
+					Item = "Project2",
+					Modification = new Modification
+					{
+						Code = "new",
+						Item = "$/New/Project2",
+						Author = "Shuruev, Oleg",
+						Type = "edit",
+						Comment = "New modification for Project2",
+						Date = DateTime.UtcNow
+					}
+				}
+			});
 
-				var engine = new QueueEngine(db);
-				engine.SubmitItem("V3.Storage");
+			modifications.Release("Project1");
+			modifications.Release("Project2");
 
-				Console.WriteLine($"Hello from #{index} (.NET thread {Thread.CurrentThread.ManagedThreadId})");
-				//Console.WriteLine($"DONE #{index} (.NET thread {Thread.CurrentThread.ManagedThreadId})");
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine(e);
-			}
+			modifications.Reserve("Project2");
+			modifications.Release("Project2");
 		}
 	}
 }

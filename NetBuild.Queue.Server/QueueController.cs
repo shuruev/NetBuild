@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Web.Http;
+using NetBuild.Queue.Core;
 using NetBuild.Queue.Engine;
+using Newtonsoft.Json.Linq;
 
 namespace NetBuild.Queue.Server
 {
@@ -19,16 +17,23 @@ namespace NetBuild.Queue.Server
 
 		[HttpGet]
 		[Route("status")]
-		public string Check()
+		public string Status()
 		{
 			return "OK";
 		}
 
-		[HttpGet]
-		[Route("test")]
-		public bool Test()
+		[HttpPost]
+		[Route("process")]
+		public List<string> ProcessSignal(string signal, [FromBody]JObject value)
 		{
-			return m_engine.ShouldBuild("Project5").Count > 0;
+			return m_engine.ProcessSignal(signal, value);
+		}
+
+		[HttpGet]
+		[Route("check")]
+		public List<Modification> ShouldBuild(string item)
+		{
+			return m_engine.ShouldBuild(item);
 		}
 	}
 }

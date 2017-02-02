@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NetBuild.Queue.Core;
 
 namespace NetBuild.Queue.Engine
 {

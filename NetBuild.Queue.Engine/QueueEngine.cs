@@ -3,9 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NetBuild.Common;
+using NetBuild.Queue.Core;
+using Newtonsoft.Json.Linq;
 
 namespace NetBuild.Queue.Engine
 {
+	/// <summary>
+	/// An engine which provide a certain strategy of queueing and starting the builds.
+	/// </summary>
 	public class QueueEngine
 	{
 		private readonly Triggers m_triggers;
@@ -14,6 +19,9 @@ namespace NetBuild.Queue.Engine
 		private readonly ILogger m_logger;
 		private readonly List<IDetector> m_detectors;
 
+		/// <summary>
+		/// Initializes a new instance.
+		/// </summary>
 		public QueueEngine(Triggers triggers, Modifications modifications, ILogger logger = null)
 		{
 			if (triggers == null)
@@ -29,6 +37,9 @@ namespace NetBuild.Queue.Engine
 			m_detectors = new List<IDetector>();
 		}
 
+		/// <summary>
+		/// Adds new detector, which defines queueing strategy.
+		/// </summary>
 		public void AddDetector(IDetector detector)
 		{
 			if (detector == null)
@@ -38,9 +49,15 @@ namespace NetBuild.Queue.Engine
 			m_logger.LogDebug("Added detector {DetectorType}.", detector.GetType().Name);
 		}
 
+		/// <summary>
+		/// Loads all data from database and populates in-memory collections.
+		/// </summary>
 		public void Load()
 		{
+			// load triggers
 			var triggers = m_triggers.Load();
+
+			// notify detectors about added triggers
 			Parallel.ForEach(m_detectors, detector =>
 			{
 				foreach (var item in triggers.GroupBy(i => i.Item))
@@ -52,32 +69,48 @@ namespace NetBuild.Queue.Engine
 				}
 			});
 
+			// load modifications
 			var modifications = m_modifications.Load();
+
+			// notify detectors about added modifications
 			Parallel.ForEach(m_detectors, detector =>
 			{
 				detector.AddModifications(modifications);
 			});
 		}
 
+		/// <summary>
+		/// For a specified item, updates a complete set of its triggers of a given type.
+		/// </summary>
 		public void SetTriggers<T>(string item, IEnumerable<T> triggers) where T : ITrigger
 		{
+			if (item == null)
+				throw new ArgumentNullException(nameof(item));
+
 			var input = triggers.ToList();
 
+			// update triggers if needed
 			var updated = m_triggers.Set(item, input);
 			if (!updated)
 				return;
 
+			// notify detectors about changes
 			Parallel.ForEach(m_detectors, detector =>
 			{
 				detector.SetTriggers(item, typeof(T), input.Cast<ITrigger>());
 			});
 		}
 
-		public void ProcessSignal<T>(T signal) where T : ISignal
+		/// <summary>
+		/// Processes any external signal, which can trigger new builds.
+		/// Returns a list of items which were potentially affected by this change.
+		/// </summary>
+		public List<string> ProcessSignal<T>(T signal) where T : ISignal
 		{
 			if (signal == null)
 				throw new ArgumentNullException(nameof(signal));
 
+			// calculate if signal leads to any changes
 			var changes = new List<ItemModification>();
 			foreach (var detector in m_detectors)
 			{
@@ -85,11 +118,31 @@ namespace NetBuild.Queue.Engine
 				changes.AddRange(local);
 			}
 
+			// add modifications
 			m_modifications.Add(changes);
+
+			// notify detectors about changes
 			Parallel.ForEach(m_detectors, detector =>
 			{
 				detector.AddModifications(changes);
 			});
+
+			return changes
+				.Select(i => i.Item)
+				.Distinct()
+				.OrderBy(name => name)
+				.ToList();
+		}
+
+		/// <summary>
+		/// Processes any external signal, which can trigger new builds.
+		/// Returns a list of items which were potentially affected by this change.
+		/// </summary>
+		public List<string> ProcessSignal(string signalType, JObject signalValue)
+		{
+			var type = KnownSignals.Get(signalType);
+			var signal = (ISignal)ObjectSerializer.Deserialize(type, signalValue);
+			return ProcessSignal(signal);
 		}
 
 		/// <summary>
@@ -100,10 +153,12 @@ namespace NetBuild.Queue.Engine
 			if (item == null)
 				throw new ArgumentNullException(nameof(item));
 
+			// check if any modifications exist
 			var changes = m_modifications.Get(item);
 			if (changes.Count == 0)
 				return new List<Modification>();
 
+			// check if build should be ignored by some reason
 			foreach (var detector in m_detectors)
 			{
 				if (detector.ShouldIgnore(item))
@@ -111,6 +166,20 @@ namespace NetBuild.Queue.Engine
 			}
 
 			return changes;
+		}
+
+		/// <summary>
+		/// Starts build process for specified item, marking all the current modifications with specified build code.
+		/// </summary>
+		public void StartBuild(string itemCode, string buildCode)
+		{
+		}
+
+		/// <summary>
+		/// Marks specified build as completed, removing all corresponding modifications and updating related timestamps.
+		/// </summary>
+		public void CompleteBuild(string itemCode, string buildCode)
+		{
 		}
 	}
 }

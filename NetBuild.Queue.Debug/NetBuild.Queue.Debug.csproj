@@ -52,7 +52,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
-      <HintPath>..\packages\Serilog.2.0.0\lib\net45\Serilog.dll</HintPath>
+      <HintPath>..\packages\Serilog.2.3.0\lib\net46\Serilog.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Serilog.Sinks.Literate, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
@@ -70,7 +70,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SerilogAdapter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -90,10 +89,6 @@
     <None Include="Properties\SlowCheetah\SlowCheetah.Transforms.targets" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ClassLibrary1\ClassLibrary1.csproj">
-      <Project>{04ba901e-c0da-4b02-be32-28904753aa2d}</Project>
-      <Name>ClassLibrary1</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NetBuild.Common\NetBuild.Common.csproj">
       <Project>{dd4c2d39-b018-400b-a7b4-d7b81e1bf26f}</Project>
       <Name>NetBuild.Common</Name>
@@ -105,6 +100,10 @@
     <ProjectReference Include="..\NetBuild.Queue.Core\NetBuild.Queue.Core.csproj">
       <Project>{7dcaee59-c47f-420b-85e0-0f798157f906}</Project>
       <Name>NetBuild.Queue.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetBuild.Queue.Engine\NetBuild.Queue.Engine.csproj">
+      <Project>{04ba901e-c0da-4b02-be32-28904753aa2d}</Project>
+      <Name>NetBuild.Queue.Engine</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

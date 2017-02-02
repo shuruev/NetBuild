@@ -10,7 +10,7 @@ namespace CCNet.NetBuildQueue.Plugin
 	{
 		public void Run(IIntegrationResult result)
 		{
-			if (m_db == null)
+			if (m_queue == null)
 			{
 				Init(result.ProjectName);
 			}
@@ -18,7 +18,7 @@ namespace CCNet.NetBuildQueue.Plugin
 			result.BuildProgressInformation.SignalStartRunTask($"Starting build '{result.Label}' for '{m_itemCode}'...");
 
 			var sw = Stopwatch.StartNew();
-			m_db.StartBuild(m_itemCode, result.Label);
+			m_queue.StartBuild(m_itemCode, result.Label);
 			sw.Stop();
 
 			Log.Info($"[NETBUILD] Build '{result.Label}' for '{m_itemCode}' started in {sw.ElapsedMilliseconds} ms.");
