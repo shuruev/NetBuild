@@ -34,6 +34,10 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.2.3.0\lib\net45\Serilog.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,23 +48,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Api\ApiClient.cs" />
+    <Compile Include="Api\ApiRequest.cs" />
+    <Compile Include="Api\IRestRequest.cs" />
+    <Compile Include="Api\RestClient.cs" />
     <Compile Include="Log\ILogger.cs" />
     <Compile Include="Log\LoggerExtensions.cs" />
     <Compile Include="Log\LogLevel.cs" />
+    <Compile Include="Log\SerilogAdapter.cs" />
     <Compile Include="Security\CertificateProvider.cs" />
     <Compile Include="Security\CertificateEncryptor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Security\EncryptorExtensions.cs" />
     <Compile Include="Security\IEncryptor.cs" />
     <Compile Include="Security\LocalEncryptor.cs" />
+    <Compile Include="Util\ActionLimit.cs" />
+    <Compile Include="Util\ActionRetry.cs" />
+    <Compile Include="Util\ObjectSerializer.cs" />
     <Compile Include="Util\Util.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Api\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
