@@ -3,7 +3,6 @@ using System.Configuration;
 using System.IO;
 using System.Reflection;
 using Atom.Toolbox;
-using NetBuild.Common;
 
 namespace TfsPlugin.NetBuildQueue
 {
@@ -23,19 +22,14 @@ namespace TfsPlugin.NetBuildQueue
 		public static bool DebugMode { get; set; }
 
 		/// <summary>
-		/// Gets or sets local cache folder.
+		/// Gets or sets queue server URL.
 		/// </summary>
-		public static string LocalCache { get; set; }
+		public static string ServerUrl { get; set; }
 
 		/// <summary>
-		/// Gets or sets database connection string.
+		/// Gets or sets queue server URL.
 		/// </summary>
-		public static string DbConnection { get; set; }
-
-		/// <summary>
-		/// Gets or sets database command timeout.
-		/// </summary>
-		public static TimeSpan DbTimeout { get; set; }
+		public static TimeSpan Timeout { get; set; }
 
 		/// <summary>
 		/// Loads configuration from the specified TFS plugin folder.
@@ -56,20 +50,8 @@ namespace TfsPlugin.NetBuildQueue
 
 			Log.Debug($"Loading configuration from: {assemblyPath}");
 
-			LocalCache = reader.Get<string>("NetBuild.LocalCache", null);
-
-			var dbConnection = reader.Get<string>("NetBuild.DbConnection");
-			if (dbConnection.Contains("{password}"))
-			{
-				var thumbprint = reader.Get<string>("Security.Thumbprint");
-				var secure = new LocalEncryptor(thumbprint);
-
-				var dbPassword = secure.DecryptUtf8(reader.Get<string>("NetBuild.DbPassword"));
-				dbConnection = dbConnection.Replace("{password}", dbPassword);
-			}
-
-			DbConnection = dbConnection;
-			DbTimeout = reader.Get<TimeSpan>("NetBuild.DbTimeout");
+			ServerUrl = reader.Get<string>("NetBuild.ServerUrl");
+			Timeout = reader.Get<TimeSpan>("NetBuild.Timeout");
 
 			Loaded = true;
 			return true;

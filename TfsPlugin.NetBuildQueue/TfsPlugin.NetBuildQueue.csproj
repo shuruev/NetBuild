@@ -69,7 +69,6 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -93,6 +92,10 @@
     <ProjectReference Include="..\NetBuild.Common\NetBuild.Common.csproj">
       <Project>{dd4c2d39-b018-400b-a7b4-d7b81e1bf26f}</Project>
       <Name>NetBuild.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetBuild.Queue.Client\NetBuild.Queue.Client.csproj">
+      <Project>{0801eaed-0251-4266-b394-e5ab0d9b74ae}</Project>
+      <Name>NetBuild.Queue.Client</Name>
     </ProjectReference>
     <ProjectReference Include="..\NetBuild.Queue.Core\NetBuild.Queue.Core.csproj">
       <Project>{7dcaee59-c47f-420b-85e0-0f798157f906}</Project>

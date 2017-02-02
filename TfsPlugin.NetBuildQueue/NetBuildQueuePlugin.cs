@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -10,6 +8,7 @@ using Microsoft.TeamFoundation.Common;
 using Microsoft.TeamFoundation.Framework.Server;
 using Microsoft.TeamFoundation.VersionControl.Client;
 using Microsoft.TeamFoundation.VersionControl.Server;
+using NetBuild.Queue.Client;
 using NetBuild.Queue.Core;
 using Newtonsoft.Json;
 using Changeset = Microsoft.TeamFoundation.VersionControl.Client.Changeset;
@@ -85,9 +84,7 @@ namespace TfsPlugin.NetBuildQueue
 			sb.AppendLine($"Change author: {author}");
 			sb.AppendLine($"Change comment: {comment}");
 			sb.AppendLine($"Change date (UTC): {date}");
-			sb.AppendLine();
-
-			var bag = new ConcurrentBag<string>();
+			sb.AppendLine("---");
 
 			// create and process a separate signal for every change within a changeset
 			Parallel.ForEach(
@@ -113,24 +110,15 @@ namespace TfsPlugin.NetBuildQueue
 						ChangeType = type
 					};
 
-					var items = ProcessSignal(signal);
-					foreach (var item in items)
-						bag.Add(item);
+					ProcessSignal(signal);
 				});
 
-			// reset local cache for potentially affected items
-			if (!String.IsNullOrEmpty(Config.LocalCache))
-			{
-				var cache = new QueueCache(Config.LocalCache);
-				foreach (var item in bag.Distinct().ToList())
-				{
-					cache.RemoveCache(item);
-					Log.Debug($"Reset local cache for {item}.");
-				}
-			}
-
 			total.Stop();
-			Log.Info($"Checkin processed in {total.ElapsedMilliseconds} ms.\r\n\r\n{sb}");
+
+			Log.Info(
+				$@"Checkin processed in {total.ElapsedMilliseconds} ms.
+---
+{sb}");
 		}
 
 		private Changeset ReadChangeset(int changesetId, TeamFoundationRequestContext context)
@@ -147,31 +135,23 @@ namespace TfsPlugin.NetBuildQueue
 			return changeset;
 		}
 
-		private List<string> ProcessSignal(SourceChangedSignal signal)
+		private void ProcessSignal(SourceChangedSignal signal)
 		{
-			var log = new StringBuilder();
-
-			var db = new QueueDb(Config.DbConnection, Config.DbTimeout);
-			if (Config.DebugMode)
+			var queue = new QueueClient(Config.ServerUrl)
 			{
-				db.Log = new StringLog(log);
-			}
-
-			var engine = new QueueEngine(db);
+				Timeout = Config.Timeout
+			};
 
 			var sw = Stopwatch.StartNew();
-			var items = engine.ProcessSignal(signal);
+			var items = queue.ProcessSignal(signal);
 			sw.Stop();
 
 			Log.Debug(
 				$@"Signal processed in {sw.ElapsedMilliseconds} ms.
-
+---
 {JsonConvert.SerializeObject(signal, Formatting.Indented)}
-
-{log}
-{String.Join(Environment.NewLine, items.Select(item => "- " + item))}");
-
-			return items;
+---
+{String.Join(Environment.NewLine, items.Select(item => "> " + item))}");
 		}
 	}
 }
