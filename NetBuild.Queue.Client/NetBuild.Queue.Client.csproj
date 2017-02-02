@@ -44,10 +44,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApiRequest.cs" />
-    <Compile Include="ApiClient.cs" />
-    <Compile Include="RestClient.cs" />
-    <Compile Include="IRestRequest.cs" />
     <Compile Include="QueueClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -55,6 +51,10 @@
     <ProjectReference Include="..\NetBuild.Common\NetBuild.Common.csproj">
       <Project>{dd4c2d39-b018-400b-a7b4-d7b81e1bf26f}</Project>
       <Name>NetBuild.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetBuild.Queue.Core\NetBuild.Queue.Core.csproj">
+      <Project>{7dcaee59-c47f-420b-85e0-0f798157f906}</Project>
+      <Name>NetBuild.Queue.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
