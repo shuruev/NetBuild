@@ -53,8 +53,8 @@ namespace NetBuild.Queue.Debug
 				.WriteTo.LiterateConsole()
 				.CreateLogger();
 
-			//var client = new QueueClient("http://rufc-devbuild.cneu.cnwk:8001")
-			var client = new QueueClient("http://localhost:8000")
+			var client = new QueueClient("http://rufc-devbuild.cneu.cnwk:8001")
+			//var client = new QueueClient("http://localhost:8000")
 			{
 				Logger = new SerilogAdapter(logger)
 			};

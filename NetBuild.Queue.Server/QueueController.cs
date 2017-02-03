@@ -61,7 +61,7 @@ namespace NetBuild.Queue.Server
 		[Route("stop")]
 		public void StopBuild(string item, string label)
 		{
-			m_engine.StartBuild(item, label);
+			m_engine.StopBuild(item, label);
 		}
 	}
 }
