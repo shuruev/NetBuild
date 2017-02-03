@@ -6,10 +6,8 @@ using NetBuild.Queue.Core;
 
 namespace NetBuild.Queue.Engine
 {
-	public class BuildCompleteDetector : IDetector
+	public class BuildCompleteDetector : EmptyDetector
 	{
-		private readonly object m_sync;
-
 		private readonly Dictionary<string, List<string>> m_referencesTo;
 		private readonly Dictionary<string, List<string>> m_referencedBy;
 		private readonly Dictionary<string, List<string>> m_allDependants;
@@ -18,7 +16,6 @@ namespace NetBuild.Queue.Engine
 
 		public BuildCompleteDetector()
 		{
-			m_sync = new object();
 
 			m_referencesTo = new Dictionary<string, List<string>>();
 			m_referencedBy = new Dictionary<string, List<string>>();
@@ -27,7 +24,7 @@ namespace NetBuild.Queue.Engine
 			m_pending = new HashSet<string>();
 		}
 
-		public void SetTriggers(string item, Type type, IEnumerable<ITrigger> triggers)
+		public override void SetTriggers(string item, Type type, IEnumerable<ITrigger> triggers)
 		{
 			if (type != typeof(ReferenceItemTrigger))
 				return;
@@ -116,7 +113,7 @@ namespace NetBuild.Queue.Engine
 			return m_allDependants[item];
 		}
 
-		public void AddModifications(IEnumerable<ItemModification> modifications)
+		public override void AddModifications(IEnumerable<ItemModification> modifications)
 		{
 			lock (m_sync)
 			{
@@ -129,7 +126,7 @@ namespace NetBuild.Queue.Engine
 			}
 		}
 
-		public List<ItemModification> DetectChanges<T>(T signal) where T : ISignal
+		public override List<ItemModification> DetectChanges<T>(T signal)
 		{
 			var result = new List<ItemModification>();
 
@@ -165,7 +162,7 @@ namespace NetBuild.Queue.Engine
 			return result;
 		}
 
-		public bool ShouldIgnore(string item)
+		public override bool ShouldIgnore(string item)
 		{
 			// we should postpone builds for the specified item, if some of their referenced items
 			// are already in the build queue (i.e. current item will be triggered anyway after they build
@@ -175,11 +172,7 @@ namespace NetBuild.Queue.Engine
 			}
 		}
 
-		public void StartBuild(string item, string label)
-		{
-		}
-
-		public void CompleteBuild(string item, string label)
+		public override void CompleteBuild(string item, string label)
 		{
 			lock (m_sync)
 			{

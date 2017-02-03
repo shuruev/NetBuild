@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NetBuild.Queue.Core;
 
 namespace NetBuild.Queue.Engine
 {
 	/// <summary>
 	/// Allows only limited number of projects to be built at the same time.
 	/// </summary>
-	public class ConcurrentBuildDetector : IDetector
+	public class ConcurrentBuildDetector : EmptyDetector
 	{
 		// timeout which is used to reset builds which were started, but were not completed
 		private static readonly TimeSpan s_buildTimeout = TimeSpan.FromMinutes(10);
@@ -28,23 +27,11 @@ namespace NetBuild.Queue.Engine
 
 			m_maxConcurrentBuilds = maxConcurrentBuilds;
 			m_building = new Dictionary<string, DateTime>();
+
 			m_lastChecked = DateTime.UtcNow;
 		}
 
-		public void SetTriggers(string item, Type type, IEnumerable<ITrigger> triggers)
-		{
-		}
-
-		public void AddModifications(IEnumerable<ItemModification> modifications)
-		{
-		}
-
-		public List<ItemModification> DetectChanges<T>(T signal) where T : ISignal
-		{
-			return new List<ItemModification>();
-		}
-
-		public bool ShouldIgnore(string item)
+		public override bool ShouldIgnore(string item)
 		{
 			CleanupExpiredBuilds();
 
@@ -60,7 +47,7 @@ namespace NetBuild.Queue.Engine
 			if (now.Subtract(m_lastChecked) < s_checkEvery)
 				return;
 
-			lock (m_building)
+			lock (m_sync)
 			{
 				foreach (var item in m_building.Where(i => now.Subtract(i.Value) > s_buildTimeout).ToList())
 				{
@@ -71,20 +58,21 @@ namespace NetBuild.Queue.Engine
 			}
 		}
 
-		public void StartBuild(string item, string label)
+		public override void StartBuild(string item, string label)
 		{
-			lock (m_building)
+			var max = m_maxConcurrentBuilds * 2;
+			lock (m_sync)
 			{
-				if (m_building.Count >= m_maxConcurrentBuilds)
-					throw new InvalidOperationException($"There are {m_building.Count} builds currently executing, but only {m_maxConcurrentBuilds} is allowed.");
+				if (m_building.Count >= max)
+					throw new InvalidOperationException($"There are {m_building.Count} builds currently executing, but maximum {max} is allowed.");
 
 				m_building[item] = DateTime.UtcNow;
 			}
 		}
 
-		public void CompleteBuild(string item, string label)
+		public override void StopBuild(string item, string label)
 		{
-			lock (m_building)
+			lock (m_sync)
 			{
 				m_building.Remove(item);
 			}

@@ -12,5 +12,6 @@ namespace NetBuild.Queue.Engine
 		bool ShouldIgnore(string item);
 		void StartBuild(string item, string label);
 		void CompleteBuild(string item, string label);
+		void StopBuild(string item, string label);
 	}
 }

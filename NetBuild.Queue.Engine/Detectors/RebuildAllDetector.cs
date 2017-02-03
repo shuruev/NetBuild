@@ -8,7 +8,7 @@ namespace NetBuild.Queue.Engine
 	/// <summary>
 	/// Forces all existing projects to rebuild.
 	/// </summary>
-	public class RebuildAllDetector : IDetector
+	public class RebuildAllDetector : EmptyDetector
 	{
 		private readonly HashSet<string> m_items;
 
@@ -17,22 +17,18 @@ namespace NetBuild.Queue.Engine
 			m_items = new HashSet<string>();
 		}
 
-		public void SetTriggers(string item, Type type, IEnumerable<ITrigger> triggers)
+		public override void SetTriggers(string item, Type type, IEnumerable<ITrigger> triggers)
 		{
 			if (type != typeof(SourcePathTrigger))
 				return;
 
-			lock (m_items)
+			lock (m_sync)
 			{
 				m_items.Add(item);
 			}
 		}
 
-		public void AddModifications(IEnumerable<ItemModification> modifications)
-		{
-		}
-
-		public List<ItemModification> DetectChanges<T>(T signal) where T : ISignal
+		public override List<ItemModification> DetectChanges<T>(T signal)
 		{
 			var result = new List<ItemModification>();
 
@@ -59,19 +55,6 @@ namespace NetBuild.Queue.Engine
 			}
 
 			return result;
-		}
-
-		public bool ShouldIgnore(string item)
-		{
-			return false;
-		}
-
-		public void StartBuild(string item, string label)
-		{
-		}
-
-		public void CompleteBuild(string item, string label)
-		{
 		}
 	}
 }

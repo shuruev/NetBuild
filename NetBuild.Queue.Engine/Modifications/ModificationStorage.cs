@@ -107,7 +107,7 @@ FROM [Queue].Modification
 			}
 		}
 
-		public void Reserve(string item)
+		public void Reserve(string item, string label)
 		{
 			using (var conn = new SqlConnection(m_connectionString))
 			{
@@ -115,16 +115,19 @@ FROM [Queue].Modification
 
 				conn.Execute(
 					@"
-UPDATE [Queue].[Modification]
-SET Reserved = GETUTCDATE()
+UPDATE [Queue].Modification
+SET BuildLabel = @label
 WHERE BuildItem = @item
+
+INSERT INTO [Queue].Build (Item, [Action], Label)
+VALUES (@item, 'Start', @label)
 ",
-					new { item },
+					new { item, label },
 					commandTimeout: m_commandTimeoutInSeconds);
 			}
 		}
 
-		public void Release(string item)
+		public void Complete(string item, string label)
 		{
 			using (var conn = new SqlConnection(m_connectionString))
 			{
@@ -135,9 +138,34 @@ WHERE BuildItem = @item
 DELETE FROM [Queue].Modification
 WHERE
 	BuildItem = @item
-	AND Reserved IS NOT NULL
+	AND BuildLabel IS NOT NULL
+
+INSERT INTO [Queue].Build (Item, [Action], Label)
+VALUES (@item, 'Complete', @label)
 ",
-					new { item },
+					new { item, label },
+					commandTimeout: m_commandTimeoutInSeconds);
+			}
+		}
+
+		public void Release(string item, string label)
+		{
+			using (var conn = new SqlConnection(m_connectionString))
+			{
+				conn.Open();
+
+				conn.Execute(
+					@"
+UPDATE [Queue].Modification
+SET BuildLabel = NULL
+WHERE
+	BuildItem = @item
+	AND BuildLabel IS NOT NULL
+
+INSERT INTO [Queue].Build (Item, [Action], Label)
+VALUES (@item, 'Stop', @label)
+",
+					new { item, label },
 					commandTimeout: m_commandTimeoutInSeconds);
 			}
 		}

@@ -51,9 +51,11 @@
     <Compile Include="Detectors\BuildCompleteDetector.cs" />
     <Compile Include="Detectors\ConcurrentBuildDetector.cs" />
     <Compile Include="Detectors\RebuildAllDetector.cs" />
+    <Compile Include="Detectors\EmptyDetector.cs" />
     <Compile Include="Detectors\SourceChangedDetector.cs" />
     <Compile Include="Detectors\IDetector.cs" />
     <Compile Include="Modifications\ItemModification.cs" />
+    <Compile Include="QueueEngineException.cs" />
     <Compile Include="Signals\KnownSignals.cs" />
     <Compile Include="Triggers\ItemTrigger.cs" />
     <Compile Include="Triggers\KnownTriggers.cs" />

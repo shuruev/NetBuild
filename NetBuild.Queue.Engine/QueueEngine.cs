@@ -13,6 +13,8 @@ namespace NetBuild.Queue.Engine
 	/// </summary>
 	public class QueueEngine : ITriggerSetup
 	{
+		private readonly object m_sync;
+
 		private readonly Triggers m_triggers;
 		private readonly Modifications m_modifications;
 
@@ -29,6 +31,8 @@ namespace NetBuild.Queue.Engine
 
 			if (modifications == null)
 				throw new ArgumentNullException(nameof(modifications));
+
+			m_sync = new object();
 
 			m_triggers = triggers;
 			m_modifications = modifications;
@@ -95,10 +99,10 @@ namespace NetBuild.Queue.Engine
 				return false;
 
 			// notify detectors about changes
-			Parallel.ForEach(m_detectors, detector =>
+			foreach (var detector in m_detectors)
 			{
 				detector.SetTriggers(item, type, input);
-			});
+			}
 
 			return true;
 		}
@@ -137,10 +141,10 @@ namespace NetBuild.Queue.Engine
 			m_modifications.Add(changes);
 
 			// notify detectors about changes
-			Parallel.ForEach(m_detectors, detector =>
+			foreach (var detector in m_detectors)
 			{
 				detector.AddModifications(changes);
-			});
+			}
 
 			return changes
 				.Select(i => i.Item)
@@ -188,14 +192,25 @@ namespace NetBuild.Queue.Engine
 		/// </summary>
 		public void StartBuild(string item, string label)
 		{
-			// notify detectors beforehand, so they could throw an exception if needed
-			Parallel.ForEach(m_detectors, detector =>
-			{
-				detector.StartBuild(item, label);
-			});
+			if (item == null)
+				throw new ArgumentNullException(nameof(item));
 
-			// reserve modifications which exist at this moment for this item
-			m_modifications.Reserve(item);
+			if (label == null)
+				throw new ArgumentNullException(nameof(label));
+
+			// lock the entire method, so that items would start builds one by one
+			// and detectors could throw an exception if needed
+			lock (m_sync)
+			{
+				// notify detectors beforehand, so they could throw an exception if needed
+				foreach (var detector in m_detectors)
+				{
+					detector.StartBuild(item, label);
+				}
+
+				// reserve modifications which exist at this moment for this item
+				m_modifications.Reserve(item, label);
+			}
 		}
 
 		/// <summary>
@@ -203,14 +218,41 @@ namespace NetBuild.Queue.Engine
 		/// </summary>
 		public void CompleteBuild(string item, string label)
 		{
-			// release all previously reserved modifications for this item
-			m_modifications.Release(item);
+			if (item == null)
+				throw new ArgumentNullException(nameof(item));
+
+			if (label == null)
+				throw new ArgumentNullException(nameof(label));
+
+			// remove all reserved modifications for this item
+			m_modifications.Complete(item, label);
 
 			// notify detectors
-			Parallel.ForEach(m_detectors, detector =>
+			foreach (var detector in m_detectors)
 			{
 				detector.CompleteBuild(item, label);
-			});
+			}
+		}
+
+		/// <summary>
+		/// Stops build process, which may or may not be successfully completed.
+		/// </summary>
+		public void StopBuild(string item, string label)
+		{
+			if (item == null)
+				throw new ArgumentNullException(nameof(item));
+
+			if (label == null)
+				throw new ArgumentNullException(nameof(label));
+
+			// release all previously reserved modifications for this item
+			m_modifications.Release(item, label);
+
+			// notify detectors
+			foreach (var detector in m_detectors)
+			{
+				detector.StopBuild(item, label);
+			}
 		}
 	}
 }

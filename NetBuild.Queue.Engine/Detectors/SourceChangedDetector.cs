@@ -5,7 +5,7 @@ using NetBuild.Queue.Core;
 
 namespace NetBuild.Queue.Engine
 {
-	public class SourceChangedDetector : IDetector
+	public class SourceChangedDetector : EmptyDetector
 	{
 		private readonly Dictionary<string, List<string>> m_paths;
 
@@ -14,22 +14,18 @@ namespace NetBuild.Queue.Engine
 			m_paths = new Dictionary<string, List<string>>();
 		}
 
-		public void SetTriggers(string item, Type type, IEnumerable<ITrigger> triggers)
+		public override void SetTriggers(string item, Type type, IEnumerable<ITrigger> triggers)
 		{
 			if (type != typeof(SourcePathTrigger))
 				return;
 
-			lock (m_paths)
+			lock (m_sync)
 			{
 				m_paths[item] = triggers.Cast<SourcePathTrigger>().Select(i => i.SourcePath).ToList();
 			}
 		}
 
-		public void AddModifications(IEnumerable<ItemModification> modifications)
-		{
-		}
-
-		public List<ItemModification> DetectChanges<T>(T signal) where T : ISignal
+		public override List<ItemModification> DetectChanges<T>(T signal)
 		{
 			var result = new List<ItemModification>();
 
@@ -78,19 +74,6 @@ namespace NetBuild.Queue.Engine
 				return $"#{signal.ChangeId}: {signal.ChangeComment}";
 
 			return $"#{signal.ChangeId}";
-		}
-
-		public bool ShouldIgnore(string item)
-		{
-			return false;
-		}
-
-		public void StartBuild(string item, string label)
-		{
-		}
-
-		public void CompleteBuild(string item, string label)
-		{
 		}
 	}
 }
