@@ -3,6 +3,7 @@ using System.Web.Http;
 using Atom.Toolbox;
 using NetBuild.Common;
 using NetBuild.Queue.Engine;
+using NetBuild.Queue.Server.Web;
 using Owin;
 using Serilog;
 using Serilog.Core;
@@ -40,6 +41,10 @@ namespace NetBuild.Queue.Server
 				container.Verify();
 
 				// configure application
+				config.MessageHandlers.Add(new Class3(logger));
+				config.Filters.Add(new ExceptionHandlingAttribute(logger));
+				config.Formatters.Clear();
+				config.Formatters.Add(new BrowserJsonFormatter());
 				config.DependencyResolver = new SimpleInjectorWebApiDependencyResolver(container);
 				config.MapHttpAttributeRoutes();
 				config.EnsureInitialized();

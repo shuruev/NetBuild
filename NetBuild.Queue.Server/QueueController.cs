@@ -56,5 +56,12 @@ namespace NetBuild.Queue.Server
 		{
 			m_engine.CompleteBuild(item, label);
 		}
+
+		[HttpPost]
+		[Route("stop")]
+		public void StopBuild(string item, string label)
+		{
+			m_engine.StartBuild(item, label);
+		}
 	}
 }

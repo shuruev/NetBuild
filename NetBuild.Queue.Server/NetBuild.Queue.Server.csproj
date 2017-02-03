@@ -113,6 +113,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueueController.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="Web\BrowserJsonFormatter.cs" />
+    <Compile Include="Web\Class3.cs" />
+    <Compile Include="Web\ExceptionHandlingAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
