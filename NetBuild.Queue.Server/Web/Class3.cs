@@ -24,34 +24,35 @@ namespace NetBuild.Queue.Server.Web
 			var correlationId = $"{DateTime.Now.Ticks}{Thread.CurrentThread.ManagedThreadId}";
 			var requestInfo = $"{request.Method} {request.RequestUri}";
 
-			var requestMessage = await request.Content.ReadAsByteArrayAsync();
-
+			var requestMessage = await ReadContentAsync(request.Content);
 			await IncomingMessageAsync(correlationId, requestInfo, requestMessage);
 
 			var response = await base.SendAsync(request, cancellationToken);
 
-			byte[] responseMessage;
-
-			if (response.IsSuccessStatusCode)
-				responseMessage = await response.Content.ReadAsByteArrayAsync();
-			else
-				responseMessage = Encoding.UTF8.GetBytes(response.ReasonPhrase);
-
+			var responseMessage = await ReadContentAsync(response.Content);
 			await OutgoingMessageAsync(correlationId, requestInfo, responseMessage);
 
 			return response;
 		}
 
-		protected async Task IncomingMessageAsync(string correlationId, string requestInfo, byte[] message)
+		private async Task<string> ReadContentAsync(HttpContent content)
 		{
-			await Task.Run(() =>
-				m_logger.Debug($"{correlationId} - Request: {requestInfo}\r\n{Encoding.UTF8.GetString(message)}"));
+			if (content == null)
+				return String.Empty;
+
+			return Encoding.UTF8.GetString(await content.ReadAsByteArrayAsync());
 		}
 
-		protected async Task OutgoingMessageAsync(string correlationId, string requestInfo, byte[] message)
+		protected async Task IncomingMessageAsync(string correlationId, string requestInfo, string message)
 		{
 			await Task.Run(() =>
-				m_logger.Debug($"{correlationId} - Response: {requestInfo}\r\n{Encoding.UTF8.GetString(message)}"));
+				m_logger.Debug($"{correlationId} - Request: {requestInfo}\r\n{message}"));
+		}
+
+		protected async Task OutgoingMessageAsync(string correlationId, string requestInfo, string message)
+		{
+			await Task.Run(() =>
+				m_logger.Debug($"{correlationId} - Response: {requestInfo}\r\n{message}"));
 		}
 	}
 }

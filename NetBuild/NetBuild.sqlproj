@@ -66,5 +66,6 @@
     <Build Include="Queue\Tables\Trigger.sql" />
     <Build Include="Security\BuildQueue.sql" />
     <Build Include="Security\Queue.sql" />
+    <Build Include="Queue\Tables\Build.sql" />
   </ItemGroup>
 </Project>

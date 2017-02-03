@@ -71,9 +71,9 @@ namespace NetBuild.Queue.Engine
 				return signal.ChangeComment;
 
 			if (String.IsNullOrEmpty(signal.ChangeComment))
-				return $"#{signal.ChangeId}: {signal.ChangeComment}";
+				return $"#{signal.ChangeId}";
 
-			return $"#{signal.ChangeId}";
+			return $"#{signal.ChangeId}: {signal.ChangeComment}";
 		}
 	}
 }

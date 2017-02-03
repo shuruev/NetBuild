@@ -65,6 +65,8 @@ namespace NetBuild.Queue.Debug
 			updated = client.SetTriggers("Project3", new[] { new ReferenceItemTrigger { ReferenceItem = "Project4" } });
 			updated = client.SetTriggers("Project4", new[] { new ReferenceItemTrigger { ReferenceItem = "Project5" } });*/
 
+			client.StartBuild("V3.Storage1", "17.2.3.26");
+
 			Console.WriteLine($"Project0: {client.ShouldBuild("Project0").Count > 0}");
 			Console.WriteLine($"Project1: {client.ShouldBuild("Project1").Count > 0}");
 			Console.WriteLine($"Project2: {client.ShouldBuild("Project2").Count > 0}");
