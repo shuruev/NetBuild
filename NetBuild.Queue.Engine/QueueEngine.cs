@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using NetBuild.Common;
 using NetBuild.Queue.Core;
@@ -14,8 +13,6 @@ namespace NetBuild.Queue.Engine
 	/// </summary>
 	public class QueueEngine : ITriggerSetup
 	{
-		private readonly object m_sync;
-
 		private readonly Triggers m_triggers;
 		private readonly Modifications m_modifications;
 
@@ -32,8 +29,6 @@ namespace NetBuild.Queue.Engine
 
 			if (modifications == null)
 				throw new ArgumentNullException(nameof(modifications));
-
-			m_sync = new object();
 
 			m_triggers = triggers;
 			m_modifications = modifications;
@@ -185,19 +180,6 @@ namespace NetBuild.Queue.Engine
 					return new List<Modification>();
 			}
 
-			if (changes.Count > 0)
-			{
-				// If we tell some item to start build (eventually), let's wait a couple of seconds
-				// just to increase chances of getting start build signal so that concurrent build
-				// detector could react. Otherwise a lot of parallel items could receive changes here
-				// and start their builds, and even if they will send their start build signals later,
-				// concurrent build detector would not work for this items already.
-				lock (m_sync)
-				{
-					Thread.Sleep(2000);
-				}
-			}
-
 			return changes;
 		}
 
@@ -206,14 +188,14 @@ namespace NetBuild.Queue.Engine
 		/// </summary>
 		public void StartBuild(string item, string label)
 		{
-			// reserve modifications which exist at this moment for this item
-			m_modifications.Reserve(item);
-
-			// notify detectors
+			// notify detectors beforehand, so they could throw an exception if needed
 			Parallel.ForEach(m_detectors, detector =>
 			{
 				detector.StartBuild(item, label);
 			});
+
+			// reserve modifications which exist at this moment for this item
+			m_modifications.Reserve(item);
 		}
 
 		/// <summary>

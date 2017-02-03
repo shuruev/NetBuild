@@ -75,6 +75,9 @@ namespace NetBuild.Queue.Engine
 		{
 			lock (m_building)
 			{
+				if (m_building.Count >= m_maxConcurrentBuilds)
+					throw new InvalidOperationException($"There are {m_building.Count} builds currently executing, but only {m_maxConcurrentBuilds} is allowed.");
+
 				m_building[item] = DateTime.UtcNow;
 			}
 		}
