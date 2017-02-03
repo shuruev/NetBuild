@@ -11,7 +11,7 @@ namespace NetBuild.Queue.Engine
 	/// <summary>
 	/// An engine which provide a certain strategy of queueing and starting the builds.
 	/// </summary>
-	public class QueueEngine
+	public class QueueEngine : ITriggerSetup
 	{
 		private readonly Triggers m_triggers;
 		private readonly Modifications m_modifications;
@@ -82,7 +82,7 @@ namespace NetBuild.Queue.Engine
 		/// <summary>
 		/// For a specified item, updates a complete set of its triggers of a given type.
 		/// </summary>
-		public void SetTriggers<T>(string item, IEnumerable<T> triggers) where T : ITrigger
+		bool ITriggerSetup.Set(string item, Type type, IEnumerable<ITrigger> triggers)
 		{
 			if (item == null)
 				throw new ArgumentNullException(nameof(item));
@@ -90,15 +90,30 @@ namespace NetBuild.Queue.Engine
 			var input = triggers.ToList();
 
 			// update triggers if needed
-			var updated = m_triggers.Set(item, input);
+			var updated = m_triggers.Set(item, type, input);
 			if (!updated)
-				return;
+				return false;
 
 			// notify detectors about changes
 			Parallel.ForEach(m_detectors, detector =>
 			{
-				detector.SetTriggers(item, typeof(T), input.Cast<ITrigger>());
+				detector.SetTriggers(item, type, input);
 			});
+
+			return true;
+		}
+
+		/// <summary>
+		/// For a specified item, updates a complete set of its triggers of a given type.
+		/// </summary>
+		public bool SetTriggers(string item, string triggerType, List<JObject> triggerValues)
+		{
+			var type = KnownTriggers.Get(triggerType);
+			var triggers = triggerValues
+				.Select(trigger => (ITrigger)ObjectSerializer.Deserialize(type, trigger))
+				.ToList();
+
+			return (this as ITriggerSetup).Set(item, type, triggers);
 		}
 
 		/// <summary>
@@ -169,17 +184,33 @@ namespace NetBuild.Queue.Engine
 		}
 
 		/// <summary>
-		/// Starts build process for specified item, marking all the current modifications with specified build code.
+		/// Starts build process for specified item, marking all the current modifications with specified build label.
 		/// </summary>
-		public void StartBuild(string itemCode, string buildCode)
+		public void StartBuild(string item, string label)
 		{
+			// reserve modifications which exist at this moment for this item
+			m_modifications.Reserve(item);
+
+			// notify detectors
+			Parallel.ForEach(m_detectors, detector =>
+			{
+				detector.StartBuild(item, label);
+			});
 		}
 
 		/// <summary>
 		/// Marks specified build as completed, removing all corresponding modifications and updating related timestamps.
 		/// </summary>
-		public void CompleteBuild(string itemCode, string buildCode)
+		public void CompleteBuild(string item, string label)
 		{
+			// release all previously reserved modifications for this item
+			m_modifications.Release(item);
+
+			// notify detectors
+			Parallel.ForEach(m_detectors, detector =>
+			{
+				detector.CompleteBuild(item, label);
+			});
 		}
 	}
 }

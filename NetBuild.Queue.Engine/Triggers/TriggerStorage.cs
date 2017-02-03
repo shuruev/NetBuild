@@ -38,7 +38,7 @@ SELECT
 	BuildItem,
 	TriggerType,
 	TriggerValue
-FROM Queue2.[Trigger]
+FROM [Queue].[Trigger]
 ",
 					commandTimeout: m_commandTimeoutInSeconds)
 					.Select(i => new ItemTrigger
@@ -81,7 +81,7 @@ FROM Queue2.[Trigger]
 				// add missing triggers to specified item
 				conn.Execute(
 					@"
-INSERT INTO Queue2.[Trigger] (
+INSERT INTO [Queue].[Trigger] (
 	BuildItem,
 	TriggerType,
 	TriggerValue,
@@ -92,7 +92,7 @@ SELECT
 	T.TriggerValue,
 	GETUTCDATE()
 FROM #Trigger T
-	LEFT JOIN Queue2.[Trigger] QT
+	LEFT JOIN [Queue].[Trigger] QT
 	ON QT.BuildItem = @item
 		AND QT.TriggerType = @triggerType
 		AND QT.TriggerValue = T.TriggerValue
@@ -106,7 +106,7 @@ WHERE
 				conn.Execute(
 					@"
 DELETE QT
-FROM Queue2.[Trigger] QT
+FROM [Queue].[Trigger] QT
 	LEFT JOIN #Trigger T
 	ON QT.TriggerValue = T.TriggerValue
 WHERE

@@ -37,10 +37,10 @@ namespace NetBuild.Queue.Debug
 		{
 			s_connection = ReadConnection();
 
-			//DebugClient();
+			DebugClient();
 			//DebugEngine();
 			//DebugTriggers();
-			DebugModifications();
+			//DebugModifications();
 
 			Console.WriteLine("Done.");
 			Console.ReadKey();
@@ -53,11 +53,24 @@ namespace NetBuild.Queue.Debug
 				.WriteTo.LiterateConsole()
 				.CreateLogger();
 
-			//var client = new QueueClient("http://rufc-devbuild.cneu.cnwk:8001")
-			var client = new QueueClient("http://localhost:8000")
+			var client = new QueueClient("http://rufc-devbuild.cneu.cnwk:8001")
+			//var client = new QueueClient("http://localhost:8000")
 			{
 				Logger = new SerilogAdapter(logger)
 			};
+
+			/*bool updated;
+			updated = client.SetTriggers("Project1", new[] { new ReferenceItemTrigger { ReferenceItem = "Project2" }, new ReferenceItemTrigger { ReferenceItem = "Project3" } });
+			updated = client.SetTriggers("Project2", new[] { new ReferenceItemTrigger { ReferenceItem = "Project4" } });
+			updated = client.SetTriggers("Project3", new[] { new ReferenceItemTrigger { ReferenceItem = "Project4" } });
+			updated = client.SetTriggers("Project4", new[] { new ReferenceItemTrigger { ReferenceItem = "Project5" } });*/
+
+			Console.WriteLine($"Project0: {client.ShouldBuild("Project0").Count > 0}");
+			Console.WriteLine($"Project1: {client.ShouldBuild("Project1").Count > 0}");
+			Console.WriteLine($"Project2: {client.ShouldBuild("Project2").Count > 0}");
+			Console.WriteLine($"Project3: {client.ShouldBuild("Project3").Count > 0}");
+			Console.WriteLine($"Project4: {client.ShouldBuild("Project4").Count > 0}");
+			Console.WriteLine($"Project5: {client.ShouldBuild("Project5").Count > 0}");
 
 			/*var items = client.ProcessSignal(new SourceChangedSignal
 			{
@@ -69,17 +82,21 @@ namespace NetBuild.Queue.Debug
 				ChangeDate = DateTime.UtcNow
 			});*/
 
-			var items = client.ProcessSignal(new SourceChangedSignal
-			{
-				ChangeId = "13253",
-				ChangePath = "$/Sandbox/olshuruev/Temp/test.txt",
-				ChangeAuthor = "Shuruev, Oleg",
-				ChangeType = "edit",
-				ChangeComment = "Implemented initial version",
-				ChangeDate = DateTime.UtcNow
-			});
+			client.ProcessSignal(new RebuildAllSignal());
 
-			Console.WriteLine(client.ShouldBuild("Project1").Count);
+			Console.WriteLine($"Project0: {client.ShouldBuild("Project0").Count > 0}");
+			Console.WriteLine($"Project1: {client.ShouldBuild("Project1").Count > 0}");
+			Console.WriteLine($"Project2: {client.ShouldBuild("Project2").Count > 0}");
+			Console.WriteLine($"Project3: {client.ShouldBuild("Project3").Count > 0}");
+			Console.WriteLine($"Project4: {client.ShouldBuild("Project4").Count > 0}");
+			Console.WriteLine($"Project5: {client.ShouldBuild("Project5").Count > 0}");
+
+			/*client.CompleteBuild("Project0", "debug");
+			client.CompleteBuild("Project1", "debug");
+			client.CompleteBuild("Project2", "debug");
+			client.CompleteBuild("Project3", "debug");
+			client.CompleteBuild("Project4", "debug");
+			client.CompleteBuild("Project5", "debug");*/
 		}
 
 		public static void DebugEngine()
@@ -93,7 +110,7 @@ namespace NetBuild.Queue.Debug
 
 			engine.Load();
 
-			engine.SetTriggers(
+			/*engine.SetTriggers(
 				"Project1",
 				new[]
 				{
@@ -165,7 +182,7 @@ namespace NetBuild.Queue.Debug
 				ChangeType = "edit",
 				ChangeComment = "Implemented initial version",
 				ChangeDate = DateTime.UtcNow
-			});
+			});*/
 
 			var x1 = engine.ShouldBuild("Project1");
 			var x2 = engine.ShouldBuild("Project2");
@@ -180,7 +197,7 @@ namespace NetBuild.Queue.Debug
 			var triggers = new Triggers(storage);
 			triggers.Load();
 
-			triggers.Set(
+			triggers.SetTriggers(
 				"V3.Storage",
 				new[]
 				{
@@ -189,7 +206,7 @@ namespace NetBuild.Queue.Debug
 					new ReferenceItemTrigger { ReferenceItem = "Project5" }
 				});
 
-			triggers.Set(
+			triggers.SetTriggers(
 				"V3.Storage1",
 				new[]
 				{
@@ -198,7 +215,7 @@ namespace NetBuild.Queue.Debug
 					new ReferenceItemTrigger { ReferenceItem = "Project5" }
 				});
 
-			triggers.Set(
+			triggers.SetTriggers(
 				"V3.Storage1",
 				new[]
 				{
@@ -207,7 +224,7 @@ namespace NetBuild.Queue.Debug
 					new SourcePathTrigger { SourcePath = "$/Main/Production/Metro/Services" }
 				});
 
-			triggers.Set(
+			triggers.SetTriggers(
 				"V3.Storage2",
 				new[]
 				{
@@ -216,7 +233,7 @@ namespace NetBuild.Queue.Debug
 					new ReferenceItemTrigger { ReferenceItem = "Project5" }
 				});
 
-			triggers.Set(
+			triggers.SetTriggers(
 				"Main",
 				new[]
 				{

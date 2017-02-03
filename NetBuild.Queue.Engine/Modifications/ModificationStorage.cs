@@ -41,7 +41,7 @@ SELECT
 	ModificationItem,
 	ModificationComment,
 	ModificationDate
-FROM Queue2.Modification
+FROM [Queue].Modification
 ",
 					commandTimeout: m_commandTimeoutInSeconds)
 					.Select(i => new ItemModification
@@ -94,7 +94,7 @@ FROM Queue2.Modification
 
 				using (var copy = new SqlBulkCopy(conn))
 				{
-					copy.DestinationTableName = "Queue2.Modification";
+					copy.DestinationTableName = "Queue.Modification";
 					copy.ColumnMappings.Add("BuildItem", "BuildItem");
 					copy.ColumnMappings.Add("ModificationCode", "ModificationCode");
 					copy.ColumnMappings.Add("ModificationType", "ModificationType");
@@ -115,7 +115,7 @@ FROM Queue2.Modification
 
 				conn.Execute(
 					@"
-UPDATE [Queue2].[Modification]
+UPDATE [Queue].[Modification]
 SET Reserved = GETUTCDATE()
 WHERE BuildItem = @item
 ",
@@ -132,7 +132,7 @@ WHERE BuildItem = @item
 
 				conn.Execute(
 					@"
-DELETE FROM [Queue2].[Modification]
+DELETE FROM [Queue].Modification
 WHERE
 	BuildItem = @item
 	AND Reserved IS NOT NULL

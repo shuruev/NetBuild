@@ -6,7 +6,7 @@ using NetBuild.Queue.Core;
 
 namespace NetBuild.Queue.Engine
 {
-	public class Triggers
+	public class Triggers : ITriggerSetup
 	{
 		private readonly Dictionary<string, List<ITrigger>> m_all;
 		private readonly TriggerStorage m_storage;
@@ -41,26 +41,14 @@ namespace NetBuild.Queue.Engine
 			}
 		}
 
-		public bool Set<T>(string item, IEnumerable<T> triggers) where T : ITrigger
+		public bool Set(string item, Type type, IEnumerable<ITrigger> triggers)
 		{
 			var input = triggers.ToList();
-
-			var types = input.Select(trigger => trigger.GetType().Name).Distinct().ToList();
-			if (types.Count > 1)
-				throw new InvalidOperationException($"Only triggers of the same type should be passed into this method, but {types.Count} different types were found: {String.Join(", ", types)}.");
-
-			var type = types.FirstOrDefault();
-			if (type == null)
-			{
-				// when we want to delete all existing triggers of a given type
-				// we use a generic type which was used to call this method
-				type = typeof(T).Name;
-			}
 
 			// check if any modifications needed
 			lock (m_all)
 			{
-				var existing = GetInternal<T>(item);
+				var existing = GetInternal(item, type);
 				if (Util.CompareLists(existing, input))
 					return false;
 			}
@@ -68,13 +56,13 @@ namespace NetBuild.Queue.Engine
 			// set triggers in the storage
 			lock (m_storage)
 			{
-				m_storage.Set(item, type, input.Cast<object>());
+				m_storage.Set(item, type.Name, input);
 			}
 
 			// set triggers within in-memory collection
 			lock (m_all)
 			{
-				SetInternal(item, typeof(T), input.Cast<ITrigger>());
+				SetInternal(item, type, input);
 			}
 
 			return true;
@@ -93,15 +81,14 @@ namespace NetBuild.Queue.Engine
 			list.AddRange(triggers);
 		}
 
-		private List<T> GetInternal<T>(string item) where T : ITrigger
+		private List<ITrigger> GetInternal(string item, Type type)
 		{
 			List<ITrigger> list;
 			if (!m_all.TryGetValue(item, out list))
-				return new List<T>();
+				return new List<ITrigger>();
 
 			return list
-				.Where(i => i.GetType() == typeof(T))
-				.Cast<T>()
+				.Where(i => i.GetType() == type)
 				.ToList();
 		}
 	}

@@ -49,6 +49,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Detectors\BuildCompleteDetector.cs" />
+    <Compile Include="Detectors\ConcurrentBuildDetector.cs" />
+    <Compile Include="Detectors\RebuildAllDetector.cs" />
     <Compile Include="Detectors\SourceChangedDetector.cs" />
     <Compile Include="Detectors\IDetector.cs" />
     <Compile Include="Modifications\ItemModification.cs" />

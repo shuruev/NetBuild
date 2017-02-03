@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Exortech.NetReflector;
+using NetBuild.Queue.Core;
 using ThoughtWorks.CruiseControl.Core;
 using ThoughtWorks.CruiseControl.Core.Util;
 
@@ -22,6 +23,14 @@ namespace CCNet.NetBuildQueue.Plugin
 			sw.Stop();
 
 			Log.Info($"[NETBUILD] Build '{result.Label}' for '{m_itemCode}' completed in {sw.ElapsedMilliseconds} ms.");
+
+			result.BuildProgressInformation.AddTaskInformation("Notifying other projects...");
+
+			sw = Stopwatch.StartNew();
+			m_queue.ProcessSignal(new BuildCompleteSignal { BuildItem = m_itemCode });
+			sw.Stop();
+
+			Log.Info($"[NETBUILD] Build complete signal for '{m_itemCode}' processed in {sw.ElapsedMilliseconds} ms.");
 		}
 	}
 }

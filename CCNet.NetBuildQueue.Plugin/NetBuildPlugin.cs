@@ -7,6 +7,8 @@ namespace CCNet.NetBuildQueue.Plugin
 {
 	public abstract class NetBuildPlugin
 	{
+		private static readonly TimeSpan s_queueTimeout = TimeSpan.FromSeconds(15);
+
 		protected string m_itemCode;
 		protected QueueClient m_queue;
 
@@ -19,7 +21,10 @@ namespace CCNet.NetBuildQueue.Plugin
 		protected virtual void Init(string projectName)
 		{
 			m_itemCode = String.IsNullOrEmpty(ItemName) ? projectName : ItemName;
-			m_queue = new QueueClient(ServerUrl);
+			m_queue = new QueueClient(ServerUrl)
+			{
+				Timeout = s_queueTimeout
+			};
 
 			Log.Debug($"[NETBUILD] Initialized queue client for '{m_itemCode}'.");
 		}

@@ -7,7 +7,7 @@ namespace NetBuild.Queue.Engine
 {
 	public class SourceChangedDetector : IDetector
 	{
-		public readonly Dictionary<string, List<string>> m_paths;
+		private readonly Dictionary<string, List<string>> m_paths;
 
 		public SourceChangedDetector()
 		{
@@ -83,6 +83,14 @@ namespace NetBuild.Queue.Engine
 		public bool ShouldIgnore(string item)
 		{
 			return false;
+		}
+
+		public void StartBuild(string item, string label)
+		{
+		}
+
+		public void CompleteBuild(string item, string label)
+		{
 		}
 	}
 }

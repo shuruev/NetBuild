@@ -70,6 +70,7 @@ namespace NetBuild.Queue.Server
 			}
 
 			var dbTimeout = config.Get<TimeSpan>("NetBuild.DbTimeout");
+			var maxConcurrentBuilds = config.Get<int>("NetBuild.MaxConcurrentBuilds");
 
 			// TODO: add config parameters to override logging
 			var log = new SerilogAdapter(logger);
@@ -80,6 +81,8 @@ namespace NetBuild.Queue.Server
 			var engine = new QueueEngine(triggers, modifications, log);
 			engine.AddDetector(new SourceChangedDetector());
 			engine.AddDetector(new BuildCompleteDetector());
+			engine.AddDetector(new RebuildAllDetector());
+			engine.AddDetector(new ConcurrentBuildDetector(maxConcurrentBuilds));
 
 			engine.Load();
 

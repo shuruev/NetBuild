@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NetBuild.Common;
 using NetBuild.Queue.Core;
 
@@ -7,7 +8,7 @@ namespace NetBuild.Queue.Client
 	/// <summary>
 	/// Provides client features of a build queue server.
 	/// </summary>
-	public class QueueClient : ApiClient
+	public class QueueClient : ApiClient, ITriggerSetup
 	{
 		/// <summary>
 		/// Initializes a new instance.
@@ -20,15 +21,19 @@ namespace NetBuild.Queue.Client
 		/// <summary>
 		/// For a specified item, updates a complete set of its triggers of a given type.
 		/// </summary>
-		public void SetTriggers<T>(string item, IEnumerable<T> triggers) where T : ITrigger
+		bool ITriggerSetup.Set(string item, Type type, IEnumerable<ITrigger> triggers)
 		{
+			return Execute<bool>(HttpPost("set")
+				.WithParam("item", item)
+				.WithParam("trigger", type.Name)
+				.WithBody(triggers));
 		}
 
 		/// <summary>
 		/// Processes any external signal, which can trigger new builds.
 		/// Returns a list of items which were potentially affected by this change.
 		/// </summary>
-		public List<string> ProcessSignal<T>(T signal) where T : ISignal
+		public List<string> ProcessSignal(ISignal signal)
 		{
 			return Execute<List<string>>(HttpPost("process")
 				.WithParam("signal", signal.GetType().Name)
@@ -45,17 +50,25 @@ namespace NetBuild.Queue.Client
 		}
 
 		/// <summary>
-		/// Starts build process for specified item, marking all the current modifications with specified build code.
+		/// Starts build process for specified item, marking all the current modifications with specified build label.
 		/// </summary>
-		public void StartBuild(string itemCode, string buildCode)
+		public void StartBuild(string item, string label)
 		{
+			Execute(HttpPost("start")
+				.WithParam("item", item)
+				.WithParam("label", label)
+				.WithEmptyBody());
 		}
 
 		/// <summary>
 		/// Marks specified build as completed, removing all corresponding modifications and updating related timestamps.
 		/// </summary>
-		public void CompleteBuild(string itemCode, string buildCode)
+		public void CompleteBuild(string item, string label)
 		{
+			Execute(HttpPost("complete")
+				.WithParam("item", item)
+				.WithParam("label", label)
+				.WithEmptyBody());
 		}
 	}
 }

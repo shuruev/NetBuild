@@ -19,16 +19,25 @@ namespace CCNet.NetBuildQueue.Plugin
 
 		public ThoughtWorks.CruiseControl.Core.Modification[] GetModifications(IIntegrationResult from, IIntegrationResult to)
 		{
-			// make sure queue client is initialized and all required objects are configured properly
-			Init(from.ProjectName);
+			try
+			{
+				// make sure queue client is initialized and all required objects are configured properly
+				Init(from.ProjectName);
 
-			Log.Debug($"[NETBUILD] Getting changes for '{m_itemCode}'...");
-			var sw = Stopwatch.StartNew();
-			var modifications = m_queue.ShouldBuild(m_itemCode).Select(Convert).ToArray();
-			sw.Stop();
+				Log.Debug($"[NETBUILD] Getting changes for '{m_itemCode}'...");
+				var sw = Stopwatch.StartNew();
+				var modifications = m_queue.ShouldBuild(m_itemCode).Select(Convert).ToArray();
+				sw.Stop();
 
-			Log.Info($"[NETBUILD] {modifications.Length} change(s) found in {sw.ElapsedMilliseconds} ms.");
-			return modifications;
+				Log.Info($"[NETBUILD] {modifications.Length} change(s) found in {sw.ElapsedMilliseconds} ms.");
+				return modifications;
+			}
+			catch (Exception e)
+			{
+				// we catch all the errors and just write to the log, instead of getting thousands of emails
+				Log.Error($"[NETBUILD] Error occured while getting changes for '{m_itemCode}': {e}");
+				return new ThoughtWorks.CruiseControl.Core.Modification[0];
+			}
 		}
 
 		private ThoughtWorks.CruiseControl.Core.Modification Convert(NetBuild.Queue.Core.Modification modification)

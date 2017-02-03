@@ -47,9 +47,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Signals\RebuildAllSignal.cs" />
     <Compile Include="Signals\BuildCompleteSignal.cs" />
     <Compile Include="Signals\ISignal.cs" />
     <Compile Include="Signals\SourceChangedSignal.cs" />
+    <Compile Include="Triggers\TriggerExtensions.cs" />
+    <Compile Include="Triggers\ITriggerSetup.cs" />
     <Compile Include="Triggers\ITrigger.cs" />
     <Compile Include="Modifications\Modification.cs" />
     <Compile Include="Triggers\ReferenceItemTrigger.cs" />

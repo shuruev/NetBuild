@@ -104,6 +104,22 @@ namespace NetBuild.Common
 		}
 
 		/// <summary>
+		/// Sets empty body for POST requests.
+		/// </summary>
+		public ApiRequest WithEmptyBody()
+		{
+			WriteBody = stream =>
+			{
+				using (var sw = new StreamWriter(stream))
+				{
+					sw.Write(String.Empty);
+				}
+			};
+
+			return this;
+		}
+
+		/// <summary>
 		/// Adds new required parameter for HTTP query.
 		/// Throws exception if parameter value is null or empty.
 		/// </summary>

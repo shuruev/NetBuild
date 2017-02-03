@@ -8,14 +8,18 @@ namespace NetBuild.Queue.Engine
 {
 	public class BuildCompleteDetector : IDetector
 	{
-		public readonly Dictionary<string, List<string>> m_referencesTo;
-		public readonly Dictionary<string, List<string>> m_referencedBy;
-		public readonly Dictionary<string, List<string>> m_allDependants;
+		private readonly object m_sync;
 
-		public readonly HashSet<string> m_pending;
+		private readonly Dictionary<string, List<string>> m_referencesTo;
+		private readonly Dictionary<string, List<string>> m_referencedBy;
+		private readonly Dictionary<string, List<string>> m_allDependants;
+
+		private readonly HashSet<string> m_pending;
 
 		public BuildCompleteDetector()
 		{
+			m_sync = new object();
+
 			m_referencesTo = new Dictionary<string, List<string>>();
 			m_referencedBy = new Dictionary<string, List<string>>();
 			m_allDependants = new Dictionary<string, List<string>>();
@@ -30,7 +34,7 @@ namespace NetBuild.Queue.Engine
 
 			var references = triggers.Cast<ReferenceItemTrigger>().Select(i => i.ReferenceItem).ToList();
 
-			lock (m_referencesTo)
+			lock (m_sync)
 			{
 				// check if anything changed compared to the current state
 				if (m_referencesTo.ContainsKey(item))
@@ -44,7 +48,7 @@ namespace NetBuild.Queue.Engine
 				m_referencesTo[item] = references;
 			}
 
-			lock (m_referencedBy)
+			lock (m_sync)
 			{
 				// rebuild reverse dependencies
 				m_referencedBy.Clear();
@@ -65,7 +69,7 @@ namespace NetBuild.Queue.Engine
 				}
 			}
 
-			lock (m_allDependants)
+			lock (m_sync)
 			{
 				// rebuild full recursive dependants
 				m_allDependants.Clear();
@@ -114,8 +118,10 @@ namespace NetBuild.Queue.Engine
 
 		public void AddModifications(IEnumerable<ItemModification> modifications)
 		{
-			lock (m_pending)
+			lock (m_sync)
 			{
+				// mark all new modifications as pending, so they would be considered
+				// when calculating builds based on dependency graph
 				foreach (var item in modifications.Select(i => i.Item).Distinct())
 				{
 					m_pending.Add(item);
@@ -127,38 +133,34 @@ namespace NetBuild.Queue.Engine
 		{
 			var result = new List<ItemModification>();
 
-			/*var local = signal as SourceChangedSignal;
+			var local = signal as BuildCompleteSignal;
 			if (local == null)
 				return result;
 
-			if (String.IsNullOrEmpty(local.ChangePath))
-				throw new InvalidOperationException("Source path is required for source control changes.");
+			if (String.IsNullOrEmpty(local.BuildItem))
+				throw new InvalidOperationException("Build item is required for build complete signal.");
 
-			var comment = BuildComment(local);
+			// trigger builds for all items which directly depend on this one
+			List<string> dependants;
+			lock (m_sync)
+			{
+				dependants = GetReferencedBy(local.BuildItem);
+			}
 
-			var items = m_paths
-				.SelectMany(item => item.Value.Select(i => new KeyValuePair<string, string>(item.Key, i)))
-				.Where(i => local.ChangePath.StartsWith(i.Value, StringComparison.OrdinalIgnoreCase))
-				.Select(i => i.Key)
-				.Distinct()
-				.ToList();
-
-			foreach (var item in items)
+			foreach (var item in dependants)
 			{
 				result.Add(new ItemModification
 				{
 					Item = item,
 					Modification = new Modification
 					{
-						Code = local.ChangeId,
-						Type = local.ChangeType,
-						Author = local.ChangeAuthor,
-						Item = local.ChangePath,
-						Comment = comment,
-						Date = local.ChangeDate.ToUniversalTime()
+						Type = "reference",
+						Item = local.BuildItem,
+						Comment = "Referenced project was built",
+						Date = DateTime.UtcNow
 					}
 				});
-			}*/
+			}
 
 			return result;
 		}
@@ -167,7 +169,23 @@ namespace NetBuild.Queue.Engine
 		{
 			// we should postpone builds for the specified item, if some of their referenced items
 			// are already in the build queue (i.e. current item will be triggered anyway after they build
-			return m_pending.SelectMany(GetAllDependants).Contains(item);
+			lock (m_sync)
+			{
+				return m_pending.SelectMany(GetAllDependants).Contains(item);
+			}
+		}
+
+		public void StartBuild(string item, string label)
+		{
+		}
+
+		public void CompleteBuild(string item, string label)
+		{
+			lock (m_sync)
+			{
+				// remove all pending modifications for this project
+				m_pending.Remove(item);
+			}
 		}
 	}
 }

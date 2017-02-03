@@ -57,36 +57,11 @@
   <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
     <Folder Include="Properties" />
-    <Folder Include="Queue\" />
-    <Folder Include="Queue\Tables\" />
-    <Folder Include="Security\" />
-    <Folder Include="Queue\Stored Procedures\" />
-    <Folder Include="Queue\User Defined Types\" />
-    <Folder Include="Queue2\" />
-    <Folder Include="Queue2\Tables\" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="Queue\Tables\ItemTrigger.sql" />
-    <Build Include="Queue\Tables\Item.sql" />
-    <Build Include="Queue\Tables\Build.sql" />
+    <Build Include="Queue\Tables\Modification.sql" />
     <Build Include="Queue\Tables\Trigger.sql" />
     <Build Include="Security\BuildQueue.sql" />
-    <Build Include="Queue\Stored Procedures\Ignore_ReferencedItem.sql" />
-    <Build Include="Queue\Stored Procedures\ShouldBuild.sql" />
-    <Build Include="Queue\Stored Procedures\Detect_BuildComplete.sql" />
-    <Build Include="Queue\Stored Procedures\ProcessSignal.sql" />
-    <Build Include="Queue\Stored Procedures\Detect_SourceChanged.sql" />
-    <Build Include="Queue\Stored Procedures\CompleteBuild.sql" />
-    <Build Include="Queue\Stored Procedures\StartBuild.sql" />
-    <Build Include="Queue\Stored Procedures\SetTriggers.sql" />
-    <Build Include="Queue\Stored Procedures\SubmitItem.sql" />
-    <Build Include="Queue\User Defined Types\TriggerValue.sql" />
     <Build Include="Security\Queue.sql" />
-    <Build Include="Queue\Tables\Modification.sql" />
-    <Build Include="Queue\Stored Procedures\Ignore_ConcurrentBuild.sql" />
-    <Build Include="Queue\Stored Procedures\Detect_RebuildAll.sql" />
-    <Build Include="Queue2\Tables\Trigger.sql" />
-    <Build Include="Queue2\Tables\Modification.sql" />
-    <Build Include="Security\Queue2.sql" />
   </ItemGroup>
 </Project>

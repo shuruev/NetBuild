@@ -23,6 +23,13 @@ namespace NetBuild.Queue.Server
 		}
 
 		[HttpPost]
+		[Route("set")]
+		public bool SetTriggers(string item, string trigger, [FromBody]List<JObject> values)
+		{
+			return m_engine.SetTriggers(item, trigger, values);
+		}
+
+		[HttpPost]
 		[Route("process")]
 		public List<string> ProcessSignal(string signal, [FromBody]JObject value)
 		{
@@ -34,6 +41,20 @@ namespace NetBuild.Queue.Server
 		public List<Modification> ShouldBuild(string item)
 		{
 			return m_engine.ShouldBuild(item);
+		}
+
+		[HttpPost]
+		[Route("start")]
+		public void StartBuild(string item, string label)
+		{
+			m_engine.StartBuild(item, label);
+		}
+
+		[HttpPost]
+		[Route("complete")]
+		public void CompleteBuild(string item, string label)
+		{
+			m_engine.CompleteBuild(item, label);
 		}
 	}
 }
