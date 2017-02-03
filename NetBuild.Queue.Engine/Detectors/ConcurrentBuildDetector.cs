@@ -11,7 +11,7 @@ namespace NetBuild.Queue.Engine
 	public class ConcurrentBuildDetector : IDetector
 	{
 		// timeout which is used to reset builds which were started, but were not completed
-		private static readonly TimeSpan s_buildTimeout = TimeSpan.FromMinutes(5);
+		private static readonly TimeSpan s_buildTimeout = TimeSpan.FromMinutes(10);
 
 		// how often to check for the expired builds
 		private static readonly TimeSpan s_checkEvery = TimeSpan.FromMinutes(2);

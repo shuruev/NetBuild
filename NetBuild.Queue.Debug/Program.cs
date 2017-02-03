@@ -82,7 +82,7 @@ namespace NetBuild.Queue.Debug
 				ChangeDate = DateTime.UtcNow
 			});*/
 
-			client.ProcessSignal(new RebuildAllSignal());
+			//client.ProcessSignal(new RebuildAllSignal());
 
 			Console.WriteLine($"Project0: {client.ShouldBuild("Project0").Count > 0}");
 			Console.WriteLine($"Project1: {client.ShouldBuild("Project1").Count > 0}");
