@@ -70,5 +70,16 @@ namespace NetBuild.Queue.Client
 				.WithParam("label", label)
 				.WithEmptyBody());
 		}
+
+		/// <summary>
+		/// Stops build process, which may or may not be successfully completed.
+		/// </summary>
+		public void StopBuild(string item, string label)
+		{
+			Execute(HttpPost("stop")
+				.WithParam("item", item)
+				.WithParam("label", label)
+				.WithEmptyBody());
+		}
 	}
 }

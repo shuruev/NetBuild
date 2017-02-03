@@ -2,6 +2,8 @@
     AUTHORIZATION [dbo];
 
 
+
+
 GO
 GRANT UPDATE
     ON SCHEMA::[Queue] TO [BuildQueue];

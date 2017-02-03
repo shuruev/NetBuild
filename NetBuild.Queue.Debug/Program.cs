@@ -53,8 +53,8 @@ namespace NetBuild.Queue.Debug
 				.WriteTo.LiterateConsole()
 				.CreateLogger();
 
-			var client = new QueueClient("http://rufc-devbuild.cneu.cnwk:8001")
-			//var client = new QueueClient("http://localhost:8000")
+			//var client = new QueueClient("http://rufc-devbuild.cneu.cnwk:8001")
+			var client = new QueueClient("http://localhost:8000")
 			{
 				Logger = new SerilogAdapter(logger)
 			};
@@ -107,6 +107,8 @@ namespace NetBuild.Queue.Debug
 			var engine = new QueueEngine(triggers, modifications);
 			engine.AddDetector(new SourceChangedDetector());
 			engine.AddDetector(new BuildCompleteDetector());
+			engine.AddDetector(new RebuildAllDetector());
+			engine.AddDetector(new ConcurrentBuildDetector(2));
 
 			engine.Load();
 
@@ -172,9 +174,9 @@ namespace NetBuild.Queue.Debug
 				new[]
 				{
 					new SourcePathTrigger { SourcePath = "$/Main/Production/Metro/Services" }
-				});
+				});*/
 
-			engine.ProcessSignal(new SourceChangedSignal
+			/*engine.ProcessSignal(new SourceChangedSignal
 			{
 				ChangeId = "11584",
 				ChangePath = "$/main/Production/Metro/Services/Metro.Assessment/Metro.Assessment.Client/AssessmentClient.cs",
@@ -183,6 +185,13 @@ namespace NetBuild.Queue.Debug
 				ChangeComment = "Implemented initial version",
 				ChangeDate = DateTime.UtcNow
 			});*/
+
+			engine.StartBuild("Project1", "debug");
+			engine.StopBuild("Project1", "debug");
+			engine.StartBuild("Project1", "debug");
+			engine.StartBuild("Project1", "debug");
+			engine.CompleteBuild("Project1", "debug");
+			engine.StopBuild("Project1", "debug");
 
 			var x1 = engine.ShouldBuild("Project1");
 			var x2 = engine.ShouldBuild("Project2");
@@ -268,7 +277,7 @@ namespace NetBuild.Queue.Debug
 
 			modifications.Add(items);*/
 
-			modifications.Reserve("Project2");
+			modifications.Reserve("Project2", "debug");
 
 			modifications.Add(new[]
 			{
@@ -287,11 +296,11 @@ namespace NetBuild.Queue.Debug
 				}
 			});
 
-			modifications.Release("Project1");
-			modifications.Release("Project2");
+			modifications.Release("Project1", "debug");
+			modifications.Release("Project2", "debug");
 
-			modifications.Reserve("Project2");
-			modifications.Release("Project2");
+			modifications.Reserve("Project2", "debug");
+			modifications.Release("Project2", "debug");
 		}
 	}
 }

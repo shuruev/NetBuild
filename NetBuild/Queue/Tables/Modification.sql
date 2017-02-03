@@ -7,9 +7,11 @@
     [ModificationItem]    NVARCHAR (200) NULL,
     [ModificationComment] NVARCHAR (200) NULL,
     [ModificationDate]    DATETIME2 (2)  NOT NULL,
-    [Reserved]            DATETIME2 (2)  NULL,
+    [BuildLabel]          NVARCHAR (100) NULL,
     CONSTRAINT [PK_Modification] PRIMARY KEY CLUSTERED ([Id] ASC)
 );
+
+
 
 
 GO
