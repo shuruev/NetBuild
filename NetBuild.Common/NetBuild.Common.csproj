@@ -49,6 +49,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\ApiClient.cs" />
+    <Compile Include="Api\ApiException.cs" />
+    <Compile Include="Api\ApiExceptionData.cs" />
     <Compile Include="Api\ApiRequest.cs" />
     <Compile Include="Api\IRestRequest.cs" />
     <Compile Include="Api\RestClient.cs" />

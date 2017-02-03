@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Net;
 using System.Net.Http;
 using Newtonsoft.Json;
 
@@ -81,6 +82,26 @@ namespace NetBuild.Common
 		protected ApiRequest HttpPost(string path)
 		{
 			return Http(HttpMethod.Post, path);
+		}
+
+		/// <summary>
+		/// Checks whether specified response is known and should not throw exceptions.
+		/// </summary>
+		protected override bool IsKnownError(HttpStatusCode code, string content, HttpWebResponse response, WebException exception)
+		{
+			ApiExceptionData data = null;
+			try
+			{
+				data = JsonConvert.DeserializeObject<ApiExceptionData>(content);
+			}
+			catch
+			{
+			}
+
+			if (data == null)
+				return false;
+
+			throw new ApiException(data.Message, exception);
 		}
 	}
 }

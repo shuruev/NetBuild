@@ -63,7 +63,7 @@ namespace NetBuild.Common
 				var response = (HttpWebResponse)e.Response;
 				var content = ReadResponseContent(response);
 
-				if (IsKnownError(response.StatusCode, content, response))
+				if (IsKnownError(response.StatusCode, content, response, e))
 					return response;
 
 				Logger.LogError(
@@ -90,7 +90,7 @@ namespace NetBuild.Common
 		/// <summary>
 		/// Checks whether specified response is known and should not throw exceptions.
 		/// </summary>
-		protected virtual bool IsKnownError(HttpStatusCode code, string content, HttpWebResponse response)
+		protected virtual bool IsKnownError(HttpStatusCode code, string content, HttpWebResponse response, WebException exception)
 		{
 			return false;
 		}
