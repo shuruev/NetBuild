@@ -31,15 +31,15 @@ namespace NetBuild.Queue.Engine
 			return false;
 		}
 
+		public virtual void NewBuild(string item)
+		{
+		}
+
 		public virtual void StartBuild(string item, string label)
 		{
 		}
 
 		public virtual void CompleteBuild(string item, string label)
-		{
-		}
-
-		public virtual void StopBuild(string item, string label)
 		{
 		}
 	}

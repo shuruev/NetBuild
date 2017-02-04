@@ -177,11 +177,21 @@ namespace NetBuild.Queue.Engine
 			if (changes.Count == 0)
 				return new List<Modification>();
 
-			// check if build should be ignored by some reason
-			foreach (var detector in m_detectors)
+			// lock the section where we make a decision whether to start a new build,
+			// so that detectors could affect this behavior (e.g. limit concurrent builds)
+			lock (m_sync)
 			{
-				if (detector.ShouldIgnore(item))
+				// check if build should be ignored by some reason
+				if (m_detectors.Any(detector => detector.ShouldIgnore(item)))
+				{
 					return new List<Modification>();
+				}
+
+				// notify detectors about new build
+				foreach (var detector in m_detectors)
+				{
+					detector.NewBuild(item);
+				}
 			}
 
 			return changes;
@@ -198,18 +208,13 @@ namespace NetBuild.Queue.Engine
 			if (label == null)
 				throw new ArgumentNullException(nameof(label));
 
-			// lock the entire method, so that items would start builds one by one
-			// and detectors could throw an exception if needed
-			lock (m_sync)
-			{
-				// notify detectors beforehand, so they could throw an exception if needed
-				foreach (var detector in m_detectors)
-				{
-					detector.StartBuild(item, label);
-				}
+			// reserve modifications which exist at this moment for this item
+			m_modifications.Reserve(item, label);
 
-				// reserve modifications which exist at this moment for this item
-				m_modifications.Reserve(item, label);
+			// notify detectors beforehand, so they could throw an exception if needed
+			foreach (var detector in m_detectors)
+			{
+				detector.StartBuild(item, label);
 			}
 		}
 
@@ -224,34 +229,13 @@ namespace NetBuild.Queue.Engine
 			if (label == null)
 				throw new ArgumentNullException(nameof(label));
 
-			// remove all reserved modifications for this item
-			m_modifications.Complete(item, label);
-
-			// notify detectors
-			foreach (var detector in m_detectors)
-			{
-				detector.CompleteBuild(item, label);
-			}
-		}
-
-		/// <summary>
-		/// Stops build process, which may or may not be successfully completed.
-		/// </summary>
-		public void StopBuild(string item, string label)
-		{
-			if (item == null)
-				throw new ArgumentNullException(nameof(item));
-
-			if (label == null)
-				throw new ArgumentNullException(nameof(label));
-
-			// release all previously reserved modifications for this item
+			// remove all previously reserved modifications for this item
 			m_modifications.Release(item, label);
 
 			// notify detectors
 			foreach (var detector in m_detectors)
 			{
-				detector.StopBuild(item, label);
+				detector.CompleteBuild(item, label);
 			}
 		}
 	}

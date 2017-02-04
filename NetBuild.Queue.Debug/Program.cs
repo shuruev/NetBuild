@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 using System.Threading;
 using Atom.Toolbox;
@@ -41,6 +42,7 @@ namespace NetBuild.Queue.Debug
 			//DebugEngine();
 			//DebugTriggers();
 			//DebugModifications();
+			//GenerateConfig();
 
 			Console.WriteLine("Done.");
 			Console.ReadKey();
@@ -59,13 +61,13 @@ namespace NetBuild.Queue.Debug
 				Logger = new SerilogAdapter(logger)
 			};
 
-			/*bool updated;
+			bool updated;
 			updated = client.SetTriggers("Project1", new[] { new ReferenceItemTrigger { ReferenceItem = "Project2" }, new ReferenceItemTrigger { ReferenceItem = "Project3" } });
 			updated = client.SetTriggers("Project2", new[] { new ReferenceItemTrigger { ReferenceItem = "Project4" } });
 			updated = client.SetTriggers("Project3", new[] { new ReferenceItemTrigger { ReferenceItem = "Project4" } });
-			updated = client.SetTriggers("Project4", new[] { new ReferenceItemTrigger { ReferenceItem = "Project5" } });*/
+			updated = client.SetTriggers("Project4", new[] { new ReferenceItemTrigger { ReferenceItem = "Project5" } });
 
-			client.StartBuild("V3.Storage1", "17.2.3.26");
+			//client.StartBuild("V3.Storage1", "17.2.3.26");
 
 			Console.WriteLine($"Project0: {client.ShouldBuild("Project0").Count > 0}");
 			Console.WriteLine($"Project1: {client.ShouldBuild("Project1").Count > 0}");
@@ -84,7 +86,7 @@ namespace NetBuild.Queue.Debug
 				ChangeDate = DateTime.UtcNow
 			});*/
 
-			//client.ProcessSignal(new RebuildAllSignal());
+			client.ProcessSignal(new RebuildAllSignal());
 
 			Console.WriteLine($"Project0: {client.ShouldBuild("Project0").Count > 0}");
 			Console.WriteLine($"Project1: {client.ShouldBuild("Project1").Count > 0}");
@@ -189,11 +191,8 @@ namespace NetBuild.Queue.Debug
 			});*/
 
 			engine.StartBuild("Project1", "debug");
-			engine.StopBuild("Project1", "debug");
-			engine.StartBuild("Project1", "debug");
 			engine.StartBuild("Project1", "debug");
 			engine.CompleteBuild("Project1", "debug");
-			engine.StopBuild("Project1", "debug");
 
 			var x1 = engine.ShouldBuild("Project1");
 			var x2 = engine.ShouldBuild("Project2");
@@ -303,6 +302,24 @@ namespace NetBuild.Queue.Debug
 
 			modifications.Reserve("Project2", "debug");
 			modifications.Release("Project2", "debug");
+		}
+
+		public static void GenerateConfig()
+		{
+			var random = new Random();
+			var result = new List<string>();
+
+			var lines = File.ReadAllLines(@"..\..\TextFile1.txt");
+			foreach (var line in lines)
+			{
+				for (int i = 1; i <= 7; i++)
+				{
+					var updated = line.Replace("\" path=", $"_{i}\" path=").Replace("\" />", $"\" delay=\"{random.Next(5, 65)}\" />");
+					result.Add(updated);
+				}
+			}
+
+			File.WriteAllLines(@"..\..\TextFile2.txt", result);
 		}
 	}
 }

@@ -23,9 +23,9 @@ namespace NetBuild.Queue.Client
 		/// </summary>
 		bool ITriggerSetup.Set(string item, Type type, IEnumerable<ITrigger> triggers)
 		{
-			return Execute<bool>(HttpPost("set")
-				.WithParam("item", item)
-				.WithParam("trigger", type.Name)
+			return Execute<bool>(HttpPost("triggers/{item}")
+				.WithArg("item", item)
+				.WithParam("type", type.Name)
 				.WithBody(triggers));
 		}
 
@@ -35,8 +35,8 @@ namespace NetBuild.Queue.Client
 		/// </summary>
 		public List<string> ProcessSignal(ISignal signal)
 		{
-			return Execute<List<string>>(HttpPost("process")
-				.WithParam("signal", signal.GetType().Name)
+			return Execute<List<string>>(HttpPost("signal")
+				.WithParam("type", signal.GetType().Name)
 				.WithBody(signal));
 		}
 
@@ -45,8 +45,9 @@ namespace NetBuild.Queue.Client
 		/// </summary>
 		public List<Modification> ShouldBuild(string item)
 		{
-			return Execute<List<Modification>>(HttpGet("check")
-				.WithParam("item", item));
+			return Execute<List<Modification>>(HttpPost("build/check/{item}")
+				.WithArg("item", item)
+				.WithEmptyBody());
 		}
 
 		/// <summary>
@@ -54,8 +55,8 @@ namespace NetBuild.Queue.Client
 		/// </summary>
 		public void StartBuild(string item, string label)
 		{
-			Execute(HttpPost("start")
-				.WithParam("item", item)
+			Execute(HttpPost("build/start/{item}")
+				.WithArg("item", item)
 				.WithParam("label", label)
 				.WithEmptyBody());
 		}
@@ -65,19 +66,8 @@ namespace NetBuild.Queue.Client
 		/// </summary>
 		public void CompleteBuild(string item, string label)
 		{
-			Execute(HttpPost("complete")
-				.WithParam("item", item)
-				.WithParam("label", label)
-				.WithEmptyBody());
-		}
-
-		/// <summary>
-		/// Stops build process, which may or may not be successfully completed.
-		/// </summary>
-		public void StopBuild(string item, string label)
-		{
-			Execute(HttpPost("stop")
-				.WithParam("item", item)
+			Execute(HttpPost("build/complete/{item}")
+				.WithArg("item", item)
 				.WithParam("label", label)
 				.WithEmptyBody());
 		}

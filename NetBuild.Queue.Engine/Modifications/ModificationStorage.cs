@@ -127,7 +127,7 @@ VALUES (@item, 'Start', @label)
 			}
 		}
 
-		public void Complete(string item, string label)
+		public void Release(string item, string label)
 		{
 			using (var conn = new SqlConnection(m_connectionString))
 			{
@@ -142,28 +142,6 @@ WHERE
 
 INSERT INTO [Queue].Build (Item, [Action], Label)
 VALUES (@item, 'Complete', @label)
-",
-					new { item, label },
-					commandTimeout: m_commandTimeoutInSeconds);
-			}
-		}
-
-		public void Release(string item, string label)
-		{
-			using (var conn = new SqlConnection(m_connectionString))
-			{
-				conn.Open();
-
-				conn.Execute(
-					@"
-UPDATE [Queue].Modification
-SET BuildLabel = NULL
-WHERE
-	BuildItem = @item
-	AND BuildLabel IS NOT NULL
-
-INSERT INTO [Queue].Build (Item, [Action], Label)
-VALUES (@item, 'Stop', @label)
 ",
 					new { item, label },
 					commandTimeout: m_commandTimeoutInSeconds);

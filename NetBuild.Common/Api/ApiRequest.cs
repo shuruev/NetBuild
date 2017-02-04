@@ -120,6 +120,22 @@ namespace NetBuild.Common
 		}
 
 		/// <summary>
+		/// Adds new path argument for HTTP query.
+		/// Throws exception if argument value is null or empty.
+		/// </summary>
+		public ApiRequest WithArg(string name, string value)
+		{
+			if (String.IsNullOrEmpty(name))
+				throw new ArgumentNullException(nameof(name));
+
+			if (String.IsNullOrEmpty(value))
+				throw new ArgumentNullException(nameof(value));
+
+			Path = Path.Replace($"{{{name}}}", WebUtility.UrlEncode(value));
+			return this;
+		}
+
+		/// <summary>
 		/// Adds new required parameter for HTTP query.
 		/// Throws exception if parameter value is null or empty.
 		/// </summary>

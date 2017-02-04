@@ -10,8 +10,8 @@ namespace NetBuild.Queue.Engine
 		void AddModifications(IEnumerable<ItemModification> modifications);
 		List<ItemModification> DetectChanges<T>(T signal) where T : ISignal;
 		bool ShouldIgnore(string item);
+		void NewBuild(string item);
 		void StartBuild(string item, string label);
 		void CompleteBuild(string item, string label);
-		void StopBuild(string item, string label);
 	}
 }

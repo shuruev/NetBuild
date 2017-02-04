@@ -41,7 +41,7 @@ namespace NetBuild.Queue.Server
 				container.Verify();
 
 				// configure application
-				config.MessageHandlers.Add(new Class3(logger));
+				//config.MessageHandlers.Add(new Class3(logger));
 				config.Filters.Add(new ExceptionHandlingAttribute(logger));
 				config.Formatters.Clear();
 				config.Formatters.Add(new BrowserJsonFormatter());

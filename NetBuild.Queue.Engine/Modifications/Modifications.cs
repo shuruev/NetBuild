@@ -80,21 +80,6 @@ namespace NetBuild.Queue.Engine
 			}
 		}
 
-		public void Complete(string item, string label)
-		{
-			// update modifications in the storage
-			lock (m_storage)
-			{
-				m_storage.Complete(item, label);
-			}
-
-			// update modifications within in-memory collection
-			lock (m_all)
-			{
-				CompleteInternal(item);
-			}
-		}
-
 		public void Release(string item, string label)
 		{
 			// update modifications in the storage
@@ -139,7 +124,7 @@ namespace NetBuild.Queue.Engine
 			m_reserved[item] = GetInternal(item);
 		}
 
-		private void CompleteInternal(string item)
+		private void ReleaseInternal(string item)
 		{
 			List<Modification> reserved;
 			if (!m_reserved.TryGetValue(item, out reserved))
@@ -154,11 +139,6 @@ namespace NetBuild.Queue.Engine
 				current.Remove(modification);
 			}
 
-			m_reserved.Remove(item);
-		}
-
-		private void ReleaseInternal(string item)
-		{
 			m_reserved.Remove(item);
 		}
 	}

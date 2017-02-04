@@ -58,19 +58,15 @@ namespace NetBuild.Queue.Engine
 			}
 		}
 
-		public override void StartBuild(string item, string label)
+		public override void NewBuild(string item)
 		{
-			var max = m_maxConcurrentBuilds * 2;
 			lock (m_sync)
 			{
-				if (m_building.Count >= max)
-					throw new InvalidOperationException($"There are {m_building.Count} builds currently executing, but maximum {max} is allowed.");
-
 				m_building[item] = DateTime.UtcNow;
 			}
 		}
 
-		public override void StopBuild(string item, string label)
+		public override void CompleteBuild(string item, string label)
 		{
 			lock (m_sync)
 			{

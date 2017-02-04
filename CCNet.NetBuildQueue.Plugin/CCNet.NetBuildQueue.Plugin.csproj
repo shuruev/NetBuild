@@ -53,7 +53,6 @@
     <Compile Include="NetBuildPlugin.cs" />
     <Compile Include="NetBuildQueue.cs" />
     <Compile Include="NetBuildComplete.cs" />
-    <Compile Include="NetBuildStop.cs" />
     <Compile Include="NetBuildStart.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
